@@ -1,37 +1,48 @@
-//:src/pages/Login.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-    const [credentials, setCredentials] = useState({ username: '', password: '' });
+    const [credentials, setCredentials] = useState({
+        username: '',
+        password: ''
+    });
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setError('');
         try {
             const response = await axios.post('/api/auth/login', credentials);
             if (response.data.code === 200) {
-                // 存储token和用户信息
                 localStorage.setItem('token', response.data.result.token);
                 localStorage.setItem('user', JSON.stringify(response.data.result.user));
-
-                // 跳转到首页
                 navigate('/');
             }
         } catch (error) {
             console.error('登录失败:', error.response?.data);
-            alert(error.response?.data?.message || '登录失败');
+            const errorMsg = error.response?.data?.message || '登录失败';
+            setError(errorMsg);
+            alert(errorMsg);
         }
     };
 
     return (
         <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6 text-center">用户登录</h2>
+            {error && (
+                <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+                    {error}
+                </div>
+            )}
             <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                    <label className="block text-gray-700 mb-1">用户名</label>
+                    <label htmlFor="username" className="block text-gray-700 mb-1">
+                        用户名
+                    </label>
                     <input
+                        id="username"
                         type="text"
                         placeholder="请输入用户名"
                         value={credentials.username}
@@ -42,8 +53,11 @@ export default function Login() {
                 </div>
 
                 <div>
-                    <label className="block text-gray-700 mb-1">密码</label>
+                    <label htmlFor="password" className="block text-gray-700 mb-1">
+                        密码
+                    </label>
                     <input
+                        id="password"
                         type="password"
                         placeholder="请输入密码"
                         value={credentials.password}
