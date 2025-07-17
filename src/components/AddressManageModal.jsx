@@ -37,18 +37,18 @@ export default function AddressManageModal({ userId, open, onClose, onSelectDefa
   };
   const handleDelete = async (id) => {
     if (!window.confirm('确定删除该地址吗？')) return;
-    await axios.post('/api/address/delete', { id, userId });
+    await axios.post(`/api/address/delete?userId=${userId}`, { id });
     fetchList();
   };
   const handleSetDefault = async (id) => {
-    await axios.post('/api/address/set_default', { id, userId });
+    await axios.post(`/api/address/set_default?userId=${userId}`, { id });
     fetchList();
     if (onSelectDefault) onSelectDefault();
   };
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (formMode === 'add') {
-      await axios.post('/api/address/create', {
+      await axios.post(`/api/address/create?userId=${userId}`, {
         recipient: form.recipient,
         phone: form.phone,
         province: form.province,
@@ -58,7 +58,7 @@ export default function AddressManageModal({ userId, open, onClose, onSelectDefa
         is_default: form.is_default
       });
     } else {
-      await axios.post('/api/address/update', {
+      await axios.post(`/api/address/update?userId=${userId}`, {
         id: editItem.id,
         recipient: form.recipient,
         phone: form.phone,
