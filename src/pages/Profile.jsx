@@ -20,6 +20,8 @@ function QuickActions({ onAddressManage, onLogout }) {
 }
 
 function UserInfoCard({ user, defaultAddress, onEdit, onAddressManage }) {
+  // 新增一个通用的显示函数
+  const displayOrPlaceholder = (val) => (val && val.trim() ? val : <span className="text-gray-400">未填写</span>);
   return (
     <div className="bg-white rounded-xl shadow p-8 w-full max-w-2xl">
       <div className="flex justify-between items-center mb-4">
@@ -32,19 +34,19 @@ function UserInfoCard({ user, defaultAddress, onEdit, onAddressManage }) {
         <tbody>
           <tr>
             <td className="py-2 font-medium w-24">昵称</td>
-            <td>{user.nickname}</td>
+            <td>{displayOrPlaceholder(user.nickname)}</td>
           </tr>
           <tr>
             <td className="py-2 font-medium">用户名</td>
-            <td>{user.username}</td>
+            <td>{displayOrPlaceholder(user.username)}</td>
           </tr>
           <tr>
             <td className="py-2 font-medium">邮箱</td>
-            <td>{user.email || <span className="text-gray-400">未填写</span>}</td>
+            <td>{displayOrPlaceholder(user.email)}</td>
           </tr>
           <tr>
             <td className="py-2 font-medium">手机号</td>
-            <td>{user.phone || <span className="text-gray-400">未填写</span>}</td>
+            <td>{displayOrPlaceholder(user.phone)}</td>
           </tr>
           <tr>
             <td className="py-2 font-medium">角色</td>
@@ -99,7 +101,7 @@ function EditUserModal({ user, open, onClose, onSave }) {
         ...form
       });
       if (res.data && res.data.success) {
-        onSave(res.data.data);
+        await onSave(res.data.data); // 这里加 await，确保 async 逻辑被执行
         onClose();
       } else {
         setError(res.data.message || '保存失败');
@@ -162,14 +164,37 @@ export default function Profile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
+    // 只从 localStorage 拿 token，用户信息始终从后端拉取
+    const token = localStorage.getItem('token');
+    if (!token) {
       navigate('/login');
       return;
     }
-    const u = JSON.parse(userStr);
-    setUser(u);
-    fetchDefaultAddress(u.id);
+    // 假设 token 解码或 localStorage 里有 userId
+    let userId = null;
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        userId = u.id;
+      }
+    } catch {}
+    // 如果 localStorage 没有 userId，可以考虑让登录后把 userId 单独存一份
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+    // 只从后端拉取用户信息
+    axios.get('/api/get_user', { params: { id: userId } })
+      .then(res => {
+        setUser(res.data.data);
+        // 可选：同步最新 user 到 localStorage
+        localStorage.setItem('user', JSON.stringify(res.data.data));
+        fetchDefaultAddress(userId);
+      })
+      .catch(() => {
+        navigate('/login');
+      });
   }, [navigate]);
 
   const fetchDefaultAddress = async (userId) => {
@@ -188,9 +213,17 @@ export default function Profile() {
     navigate('/login');
   };
 
-  const handleSaveUser = (newUser) => {
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
+  const handleSaveUser = async (newUser) => {
+    // 保存后也只从后端拉取
+    try {
+      const res = await axios.get('/api/get_user', { params: { id: newUser.id } });
+      const freshUser = res.data.data;
+      setUser(freshUser);
+      localStorage.setItem('user', JSON.stringify(freshUser));
+    } catch (e) {
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+    }
   };
 
   return user && (
