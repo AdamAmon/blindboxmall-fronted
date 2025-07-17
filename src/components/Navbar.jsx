@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -12,28 +12,29 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="bg-blue-600 text-white p-4">
-            <div className="container mx-auto flex justify-between items-center">
-                <Link to="/" className="text-xl font-bold">盲盒商城</Link>
-
-                <div className="flex items-center space-x-4">
-                    {user ? (
-                        <>
-                            <span>欢迎, {user.nickname}</span>
-                            <button
-                                onClick={handleLogout}
-                                className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded"
-                            >
-                                退出
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <Link to="/login" className="hover:underline">登录</Link>
-                            <Link to="/register" className="hover:underline">注册</Link>
-                        </>
-                    )}
-                </div>
+        <nav className="flex items-center justify-between p-4 bg-gray-800 text-white">
+            <div className="font-bold text-xl cursor-pointer" onClick={() => navigate('/')}>盲盒商城</div>
+            <div className="space-x-4">
+                {user ? (
+                    <>
+                        <span>你好，{user.nickname}</span>
+                        <button
+                            className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                            onClick={() => navigate('/profile')}
+                        >个人中心</button>
+                    </>
+                ) : (
+                    <>
+                        <button
+                            className="bg-green-500 px-3 py-1 rounded hover:bg-green-600"
+                            onClick={() => navigate('/login')}
+                        >登录</button>
+                        <button
+                            className="bg-gray-500 px-3 py-1 rounded hover:bg-gray-600 ml-2"
+                            onClick={() => navigate('/register')}
+                        >注册</button>
+                    </>
+                )}
             </div>
         </nav>
     );
