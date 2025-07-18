@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const DEFAULT_AVATAR = 'https://avatars.githubusercontent.com/u/583231?v=4'; // 可换为你自己的默认头像
+const DEFAULT_AVATAR = 'https://avatars.githubusercontent.com/u/583231?v=4'; // 可换为其他默认头像
 
 export default function Register() {
     const [formData, setFormData] = useState({

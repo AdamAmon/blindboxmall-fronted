@@ -10,7 +10,6 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:7001', // 后端服务地址
         changeOrigin: true
-        // 不要加rewrite，否则/api/user/update会被去掉/api前缀
       }
     }
   },

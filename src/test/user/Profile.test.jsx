@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import Profile from '../pages/Profile';
+import Profile from '../../pages/user/Profile';
 import { BrowserRouter } from 'react-router-dom';
 import axios from 'axios';
 import { vi } from 'vitest';
@@ -38,7 +38,7 @@ describe('Profile 页面', () => {
     localStorage.setItem('token', 'mocktoken');
     localStorage.setItem('user', JSON.stringify({ id: 1 }));
     axios.get.mockImplementation((url, { params }) => {
-      if (url === '/api/get_user') {
+      if (url === '/api/user/get') {
         return Promise.resolve({ data: { data: mockUser } });
       }
       if (url === '/api/address/list') {

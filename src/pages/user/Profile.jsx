@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import reactLogo from '../assets/react.svg';
-import AddressManageModal from '../components/AddressManageModal';
+import reactLogo from '../../assets/react.svg';
+import AddressManageModal from '../../components/AddressManageModal';
 
 const DEFAULT_AVATAR = reactLogo;
 
@@ -185,7 +185,7 @@ export default function Profile() {
       return;
     }
     // 只从后端拉取用户信息
-    axios.get('/api/get_user', { params: { id: userId } })
+    axios.get('/api/user/get', { params: { id: userId } })
       .then(res => {
         setUser(res.data.data);
         // 可选：同步最新 user 到 localStorage
@@ -216,7 +216,7 @@ export default function Profile() {
   const handleSaveUser = async (newUser) => {
     // 保存后也只从后端拉取
     try {
-      const res = await axios.get('/api/get_user', { params: { id: newUser.id } });
+      const res = await axios.get('/api/user/get', { params: { id: newUser.id } });
       const freshUser = res.data.data;
       setUser(freshUser);
       localStorage.setItem('user', JSON.stringify(freshUser));

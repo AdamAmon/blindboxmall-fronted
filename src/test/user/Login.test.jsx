@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
-import Login from '../pages/Login';
+import Login from '../../pages/user/Login';
 import { useNavigate } from 'react-router-dom';
 import { vi } from 'vitest';
 
@@ -24,7 +24,7 @@ describe('Login Component', () => {
 
     test('渲染登录表单', () => {
         render(<Login />);
-        expect(screen.getByText('用户登录')).toBeInTheDocument();
+        expect(screen.getByText('欢迎登录盲盒商城')).toBeInTheDocument();
         expect(screen.getByLabelText('用户名')).toBeInTheDocument();
         expect(screen.getByLabelText('密码')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: '登录' })).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe('Login Component', () => {
             });
             expect(localStorage.getItem('token')).toBe('fake-token');
             expect(localStorage.getItem('user')).toBe(JSON.stringify({ id: 1, username: 'testuser' }));
-            expect(mockNavigate).toHaveBeenCalledWith('/');
+            expect(mockNavigate).toHaveBeenCalledWith('/profile');
         });
     });
 

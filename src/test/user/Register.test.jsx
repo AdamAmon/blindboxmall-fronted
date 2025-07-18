@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
-import Register from '../pages/Register';
+import Register from '../../pages/user/Register';
 import { useNavigate } from 'react-router-dom';
 import { vi } from 'vitest';
 
