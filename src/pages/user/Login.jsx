@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import reactLogo from '../assets/react.svg';
+import reactLogo from '../../assets/react.svg';
 
 export default function Login() {
     const [credentials, setCredentials] = useState({
