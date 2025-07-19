@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import reactLogo from '../../assets/react.svg';
 import AddressManageModal from '../../components/AddressManageModal';
+import RechargeModal from '../../components/RechargeModal';
+import { useRef } from 'react';
 
 const DEFAULT_AVATAR = reactLogo;
 
@@ -160,7 +162,12 @@ export default function Profile() {
   const [user, setUser] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
   const [showAddress, setShowAddress] = useState(false);
+  const [showRecharge, setShowRecharge] = useState(false);
   const [defaultAddress, setDefaultAddress] = useState(null);
+  const [rechargeRecords, setRechargeRecords] = useState([]);
+  const [rechargeSuccess, setRechargeSuccess] = useState(false);
+  const [showRechargeRecords, setShowRechargeRecords] = useState(false);
+  const pollingRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -179,18 +186,16 @@ export default function Profile() {
         userId = u.id;
       }
     } catch {}
-    // 如果 localStorage 没有 userId，可以考虑让登录后把 userId 单独存一份
     if (!userId) {
       navigate('/login');
       return;
     }
-    // 只从后端拉取用户信息
     axios.get('/api/user/get', { params: { id: userId } })
       .then(res => {
         setUser(res.data.data);
-        // 可选：同步最新 user 到 localStorage
         localStorage.setItem('user', JSON.stringify(res.data.data));
         fetchDefaultAddress(userId);
+        fetchRechargeRecords(userId); // 只在进入页面时获取一次充值记录
       })
       .catch(() => {
         navigate('/login');
@@ -226,6 +231,104 @@ export default function Profile() {
     }
   };
 
+  // 查询充值记录
+  const fetchRechargeRecords = async (uid) => {
+    try {
+      const res = await axios.get('/api/pay/records', { params: { userId: uid } });
+      setRechargeRecords(res.data.data || []);
+    } catch {
+      setRechargeRecords([]);
+    }
+  };
+
+  // 查询余额（用户信息）
+  const fetchUser = async (uid) => {
+    try {
+      const res = await axios.get('/api/user/get', { params: { id: uid } });
+      setUser(res.data.data);
+      localStorage.setItem('user', JSON.stringify(res.data.data));
+    } catch {}
+  };
+
+  // 自动轮询余额（充值后持续监控直到余额更新）
+  useEffect(() => {
+    if (!showRecharge && user) {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+      
+      // 充值成功后开始轮询
+      if (rechargeSuccess) {
+        let checkCount = 0;
+        const maxChecks = 30; // 最多检查30次（60秒）
+        
+        pollingRef.current = setInterval(async () => {
+          checkCount++;
+          // console.log(`[调试] 第${checkCount}次检查余额更新`);
+          
+          // 获取最新用户信息
+          const res = await axios.get('/api/user/get', { params: { id: user.id } });
+          const latestUser = res.data.data;
+          
+          // 如果余额有变化，说明支付成功
+          if (Number(latestUser.balance) > Number(user.balance)) {
+            // console.log('[调试] 检测到余额更新:', user.balance, '->', latestUser.balance);
+            setUser(latestUser);
+            localStorage.setItem('user', JSON.stringify(latestUser));
+            
+            // 获取最新充值记录
+            fetchRechargeRecords(user.id);
+            setShowRechargeRecords(true);
+            
+            // 停止轮询
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current);
+              setRechargeSuccess(false);
+            }
+            
+            // 显示支付成功提示
+            alert('支付成功！余额已更新');
+          }
+          // 如果检查次数超过限制，停止轮询
+          else if (checkCount >= maxChecks) {
+            // console.log('[调试] 轮询超时，停止检查');
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current);
+              setRechargeSuccess(false);
+            }
+          }
+        }, 2000); // 每2秒检查一次
+        
+        return () => {
+          if (pollingRef.current) clearInterval(pollingRef.current);
+        };
+      }
+    } else if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+    }
+  }, [showRecharge, user, rechargeSuccess]);
+
+
+
+  // 充值处理
+  const handleRecharge = async (amount) => {
+    if (!user) return;
+    const res = await axios.post('/api/pay/recharge', { userId: user.id, amount });
+    if (res.data.success && res.data.payUrl) {
+      // 判断payUrl是form还是URL
+      if (res.data.payUrl.trim().startsWith('<form')) {
+        const payWindow = window.open('', '_blank');
+        payWindow.document.write(res.data.payUrl);
+        payWindow.document.close();
+      } else {
+        window.open(res.data.payUrl, '_blank');
+      }
+      // 支付成功后立即开始监控余额变化
+      setRechargeSuccess(true);
+      // console.log('[调试] 开始监控余额变化，当前余额:', user.balance);
+    } else {
+      throw new Error(res.data.message || '充值失败');
+    }
+  };
+
   return user && (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-400 via-purple-300 to-blue-200 flex flex-col">
       <div className="flex-1 flex flex-col md:flex-row items-start justify-center px-4 py-10 relative">
@@ -241,8 +344,68 @@ export default function Profile() {
             <div className="text-2xl font-bold mt-2">{user.nickname}</div>
             <div className="text-gray-500 text-sm">{user.username}</div>
             <div className="text-gray-500 text-sm mt-1">欢迎使用盲盒商城</div>
+            {/* 余额展示和充值按钮 */}
+            <div className="mt-4 w-full flex flex-col items-center">
+              <div className="text-lg font-semibold text-green-700">余额：￥{user.balance?.toFixed(2) ?? '0.00'}</div>
+              <button
+                className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                onClick={() => setShowRecharge(true)}
+              >余额充值</button>
+            </div>
           </div>
           <QuickActions onAddressManage={() => setShowAddress(true)} onLogout={handleLogout} />
+          {/* 充值记录展示 */}
+          <div className="w-full mt-8 bg-white rounded-xl shadow p-4">
+            <div className="flex justify-between items-center mb-2">
+              <div className="font-bold text-lg">充值记录</div>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={() => {
+                    fetchRechargeRecords(user.id);
+                    fetchUser(user.id);
+                  }}
+                  className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                >
+                  <span className="material-icons text-base mr-1">refresh</span>
+                  刷新记录
+                </button>
+                <button 
+                  onClick={() => setShowRechargeRecords(!showRechargeRecords)}
+                  className="text-green-600 hover:text-green-800 text-sm flex items-center"
+                >
+                  <span className="material-icons text-base mr-1">
+                    {showRechargeRecords ? 'visibility_off' : 'visibility'}
+                  </span>
+                  {showRechargeRecords ? '隐藏记录' : '查看记录'}
+                </button>
+              </div>
+            </div>
+            {showRechargeRecords ? (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-gray-500">
+                    <th className="py-1">时间</th>
+                    <th className="py-1">金额</th>
+                    <th className="py-1">状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rechargeRecords.length === 0 && <tr><td colSpan={3} className="text-center text-gray-400 py-2">暂无记录</td></tr>}
+                  {rechargeRecords.map(r => (
+                    <tr key={r.recharge_id}>
+                      <td className="py-1">{new Date(r.created_at).toLocaleString()}</td>
+                      <td className="py-1 text-green-700 font-semibold">￥{Number(r.recharge_amount).toFixed(2)}</td>
+                      <td className="py-1">{r.recharge_status === 'success' ? <span className="text-green-600">成功</span> : r.recharge_status === 'pending' ? <span className="text-yellow-600">待支付</span> : <span className="text-red-600">失败</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="text-center text-gray-400 py-4">
+                点击"查看记录"按钮查看充值历史
+              </div>
+            )}
+          </div>
         </div>
         {/* 右侧信息卡片 */}
         <div className="flex-1 flex flex-col items-center mt-8 md:mt-0">
@@ -250,6 +413,38 @@ export default function Profile() {
         </div>
         <EditUserModal user={user} open={showEdit} onClose={() => setShowEdit(false)} onSave={handleSaveUser} />
         <AddressManageModal userId={user.id} open={showAddress} onClose={() => { setShowAddress(false); fetchDefaultAddress(user.id); }} onSelectDefault={() => fetchDefaultAddress(user.id)} />
+        {/* 充值弹窗 */}
+        <RechargeModal open={showRecharge} onClose={() => setShowRecharge(false)} onRecharge={handleRecharge} />
+        {/* 充值成功提示 */}
+        {rechargeSuccess && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-xl shadow-xl p-8 w-[320px] text-center">
+              <div className="text-2xl text-green-600 font-bold mb-2">充值请求已发起</div>
+              <div className="text-gray-700 mb-4">
+                请在支付宝沙箱完成支付，系统会自动监控余额变化。
+                <br />
+                <span className="text-sm text-gray-500">支付成功后会自动刷新余额和充值记录</span>
+              </div>
+              <div className="flex justify-center space-x-2">
+                <button 
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" 
+                  onClick={() => setRechargeSuccess(false)}
+                >
+                  我知道了
+                </button>
+                <button 
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
+                  onClick={() => {
+                    fetchUser(user.id);
+                    fetchRechargeRecords(user.id);
+                  }}
+                >
+                  手动刷新
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
