@@ -16,15 +16,23 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-
+    setupFiles: './test/setup.js',
+    css: true,
     coverage: {
-      reporter: ['text', 'json', 'html'],
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
       thresholds: {
         lines: 80,
         functions: 80,
         branches: 80,
         statements: 80
-      }
+      },
+      exclude: [
+        'node_modules/',
+        'test/',
+        '**/*.config.js',
+        '**/*.config.ts'
+      ]
     }
   }
 })

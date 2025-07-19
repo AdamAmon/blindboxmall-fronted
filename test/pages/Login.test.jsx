@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
-import Login from '../../pages/user/Login';
+import Login from '../../src/pages/user/Login';
 import { useNavigate } from 'react-router-dom';
 import { vi } from 'vitest';
 
@@ -20,6 +20,16 @@ describe('Login Component', () => {
         mockNavigate.mockClear();
         localStorage.clear();
         window.alert = vi.fn();
+        // 重置 localStorage mock
+        Object.defineProperty(window, 'localStorage', {
+            value: {
+                getItem: vi.fn(),
+                setItem: vi.fn(),
+                removeItem: vi.fn(),
+                clear: vi.fn(),
+            },
+            writable: true,
+        });
     });
 
     test('渲染登录表单', () => {
@@ -64,8 +74,8 @@ describe('Login Component', () => {
                 username: 'testuser',
                 password: 'password123'
             });
-            expect(localStorage.getItem('token')).toBe('fake-token');
-            expect(localStorage.getItem('user')).toBe(JSON.stringify({ id: 1, username: 'testuser' }));
+            expect(localStorage.setItem).toHaveBeenCalledWith('token', 'fake-token');
+            expect(localStorage.setItem).toHaveBeenCalledWith('user', JSON.stringify({ id: 1, username: 'testuser' }));
             expect(mockNavigate).toHaveBeenCalledWith('/profile');
         });
     });
@@ -93,4 +103,4 @@ describe('Login Component', () => {
         fireEvent.click(screen.getByText('立即注册'));
         expect(mockNavigate).toHaveBeenCalledWith('/register');
     });
-});
+}); 

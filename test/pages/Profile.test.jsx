@@ -1,10 +1,18 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import Profile from '../../pages/user/Profile';
-import { BrowserRouter } from 'react-router-dom';
+import Profile from '../../src/pages/user/Profile';
 import axios from 'axios';
 import { vi } from 'vitest';
-import '@testing-library/jest-dom'; // 确保引入扩展断言
+import '@testing-library/jest-dom';
+
+// mock useNavigate，防止自动跳转
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => vi.fn(),
+  };
+});
 
 // Mock axios
 vi.mock('axios');
@@ -33,10 +41,25 @@ const mockAddressList = [
   }
 ];
 
+// 强化 localStorage mock
+beforeAll(() => {
+  Object.defineProperty(window, 'localStorage', {
+    value: {
+      getItem: vi.fn((key) => {
+        if (key === 'token') return 'mocktoken';
+        if (key === 'user') return JSON.stringify({ id: 1 });
+        return null;
+      }),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+    },
+    writable: true,
+  });
+});
+
 describe('Profile 页面', () => {
   beforeEach(() => {
-    localStorage.setItem('token', 'mocktoken');
-    localStorage.setItem('user', JSON.stringify({ id: 1 }));
     axios.get.mockImplementation((url, { params }) => {
       if (url === '/api/user/get') {
         return Promise.resolve({ data: { data: mockUser } });
@@ -49,17 +72,11 @@ describe('Profile 页面', () => {
   });
 
   afterEach(() => {
-    localStorage.clear();
     vi.clearAllMocks();
   });
 
   it('渲染用户基本信息', async () => {
-    render(
-      <BrowserRouter>
-        <Profile />
-      </BrowserRouter>
-    );
-    // 等待异步加载
+    render(<Profile />);
     await waitFor(() => {
       expect(screen.getAllByText('测试用户').length).toBeGreaterThan(0);
       expect(screen.getAllByText('testuser').length).toBeGreaterThan(0);
@@ -71,25 +88,16 @@ describe('Profile 页面', () => {
   });
 
   it('点击编辑按钮弹出编辑框', async () => {
-    render(
-      <BrowserRouter>
-        <Profile />
-      </BrowserRouter>
-    );
+    render(<Profile />);
     await waitFor(() => screen.getByText('编辑信息'));
     fireEvent.click(screen.getByText('编辑信息'));
     expect(await screen.findByText('编辑个人信息')).toBeInTheDocument();
   });
 
   it('点击管理地址弹出地址管理弹窗', async () => {
-    render(
-      <BrowserRouter>
-        <Profile />
-      </BrowserRouter>
-    );
-    // 用 findAllByText 获取所有“管理”按钮
+    render(<Profile />);
     const manageBtns = await screen.findAllByText('管理');
     fireEvent.click(manageBtns[0]);
     expect(await screen.findByText('地址管理')).toBeInTheDocument();
   });
-}); 
+});

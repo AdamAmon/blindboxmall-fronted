@@ -322,7 +322,7 @@ export default function Profile() {
         window.open(res.data.payUrl, '_blank');
       }
       // 支付成功后立即开始监控余额变化
-      setRechargeSuccess(true);
+        setRechargeSuccess(true);
       // console.log('[调试] 开始监控余额变化，当前余额:', user.balance);
     } else {
       throw new Error(res.data.message || '充值失败');
@@ -381,25 +381,25 @@ export default function Profile() {
               </div>
             </div>
             {showRechargeRecords ? (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-gray-500">
-                    <th className="py-1">时间</th>
-                    <th className="py-1">金额</th>
-                    <th className="py-1">状态</th>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-gray-500">
+                  <th className="py-1">时间</th>
+                  <th className="py-1">金额</th>
+                  <th className="py-1">状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rechargeRecords.length === 0 && <tr><td colSpan={3} className="text-center text-gray-400 py-2">暂无记录</td></tr>}
+                {rechargeRecords.map(r => (
+                  <tr key={r.recharge_id}>
+                    <td className="py-1">{new Date(r.created_at).toLocaleString()}</td>
+                    <td className="py-1 text-green-700 font-semibold">￥{Number(r.recharge_amount).toFixed(2)}</td>
+                    <td className="py-1">{r.recharge_status === 'success' ? <span className="text-green-600">成功</span> : r.recharge_status === 'pending' ? <span className="text-yellow-600">待支付</span> : <span className="text-red-600">失败</span>}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {rechargeRecords.length === 0 && <tr><td colSpan={3} className="text-center text-gray-400 py-2">暂无记录</td></tr>}
-                  {rechargeRecords.map(r => (
-                    <tr key={r.recharge_id}>
-                      <td className="py-1">{new Date(r.created_at).toLocaleString()}</td>
-                      <td className="py-1 text-green-700 font-semibold">￥{Number(r.recharge_amount).toFixed(2)}</td>
-                      <td className="py-1">{r.recharge_status === 'success' ? <span className="text-green-600">成功</span> : r.recharge_status === 'pending' ? <span className="text-yellow-600">待支付</span> : <span className="text-red-600">失败</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
             ) : (
               <div className="text-center text-gray-400 py-4">
                 点击"查看记录"按钮查看充值历史
