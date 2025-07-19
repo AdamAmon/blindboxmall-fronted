@@ -185,7 +185,9 @@ export default function Profile() {
         const u = JSON.parse(userStr);
         userId = u.id;
       }
-    } catch {}
+    } catch {
+      // 忽略 JSON 解析错误
+    }
     if (!userId) {
       navigate('/login');
       return;
@@ -225,7 +227,7 @@ export default function Profile() {
       const freshUser = res.data.data;
       setUser(freshUser);
       localStorage.setItem('user', JSON.stringify(freshUser));
-    } catch (e) {
+    } catch {
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
     }
@@ -247,7 +249,9 @@ export default function Profile() {
       const res = await axios.get('/api/user/get', { params: { id: uid } });
       setUser(res.data.data);
       localStorage.setItem('user', JSON.stringify(res.data.data));
-    } catch {}
+    } catch {
+      // 忽略错误
+    }
   };
 
   // 自动轮询余额（充值后持续监控直到余额更新）

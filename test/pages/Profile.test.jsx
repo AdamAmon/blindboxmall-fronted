@@ -6,11 +6,12 @@ import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 
 // mock useNavigate，防止自动跳转
+const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: () => vi.fn(),
+    useNavigate: () => mockNavigate,
   };
 });
 
@@ -60,14 +61,28 @@ beforeAll(() => {
 
 describe('Profile 页面', () => {
   beforeEach(() => {
-    axios.get.mockImplementation((url, { params }) => {
+    // 重置所有 mock
+    vi.clearAllMocks();
+    
+    // 设置 axios mock
+    axios.get.mockImplementation((url) => {
       if (url === '/api/user/get') {
         return Promise.resolve({ data: { data: mockUser } });
       }
       if (url === '/api/address/list') {
         return Promise.resolve({ data: { data: mockAddressList } });
       }
+      if (url === '/api/recharge/records') {
+        return Promise.resolve({ data: { data: [] } });
+      }
       return Promise.reject(new Error('not found'));
+    });
+
+    // 重置 localStorage mock
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mocktoken';
+      if (key === 'user') return JSON.stringify({ id: 1 });
+      return null;
     });
   });
 
@@ -77,27 +92,68 @@ describe('Profile 页面', () => {
 
   it('渲染用户基本信息', async () => {
     render(<Profile />);
+    
+    // 等待组件加载完成
     await waitFor(() => {
-      expect(screen.getAllByText('测试用户').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('testuser').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('test@example.com').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('12345678901').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('顾客').length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/张三/).length).toBeGreaterThan(0);
+      expect(screen.getByText('个人信息')).toBeInTheDocument();
     });
+
+    // 检查用户信息是否正确显示 - 使用更具体的查询
+    expect(screen.getByText('test@example.com')).toBeInTheDocument();
+    expect(screen.getByText('12345678901')).toBeInTheDocument();
+    expect(screen.getByText('顾客')).toBeInTheDocument();
+    
+    // 检查表格中的用户名（使用更具体的查询）
+    const usernameRow = screen.getByText('用户名').closest('tr');
+    const usernameCell = usernameRow.querySelector('td:last-child');
+    expect(usernameCell).toHaveTextContent('testuser');
+    
+    // 检查表格中的昵称
+    const nicknameRow = screen.getByText('昵称').closest('tr');
+    const nicknameCell = nicknameRow.querySelector('td:last-child');
+    expect(nicknameCell).toHaveTextContent('测试用户');
   });
 
   it('点击编辑按钮弹出编辑框', async () => {
     render(<Profile />);
-    await waitFor(() => screen.getByText('编辑信息'));
+    
+    await waitFor(() => {
+      expect(screen.getByText('编辑信息')).toBeInTheDocument();
+    });
+    
     fireEvent.click(screen.getByText('编辑信息'));
-    expect(await screen.findByText('编辑个人信息')).toBeInTheDocument();
+    
+    await waitFor(() => {
+      expect(screen.getByText('编辑个人信息')).toBeInTheDocument();
+    });
   });
 
   it('点击管理地址弹出地址管理弹窗', async () => {
     render(<Profile />);
-    const manageBtns = await screen.findAllByText('管理');
-    fireEvent.click(manageBtns[0]);
-    expect(await screen.findByText('地址管理')).toBeInTheDocument();
+    
+    await waitFor(() => {
+      expect(screen.getByText('管理')).toBeInTheDocument();
+    });
+    
+    const manageBtn = screen.getByText('管理');
+    fireEvent.click(manageBtn);
+    
+    await waitFor(() => {
+      expect(screen.getByText('地址管理')).toBeInTheDocument();
+    });
+  });
+
+  it('没有token时跳转到登录页面', async () => {
+    // 模拟没有token的情况
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return null;
+      return null;
+    });
+
+    render(<Profile />);
+    
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/login');
+    });
   });
 });

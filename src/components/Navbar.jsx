@@ -5,12 +5,6 @@ const Navbar = () => {
     const navigate = useNavigate();
     const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
-    };
-
     return (
         <nav className="flex items-center justify-between p-4 bg-gray-800 text-white">
             <div className="font-bold text-xl cursor-pointer" onClick={() => navigate('/')}>盲盒商城</div>

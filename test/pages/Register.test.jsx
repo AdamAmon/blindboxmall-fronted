@@ -18,7 +18,6 @@ describe('Register Component', () => {
         useNavigate.mockImplementation(() => mockNavigate);
         axios.post.mockClear();
         mockNavigate.mockClear();
-        localStorage.clear();
         window.alert = vi.fn();
     });
 

@@ -13,23 +13,26 @@ vi.mock('react-router-dom', () => ({
 
 describe('Login Component', () => {
     const mockNavigate = vi.fn();
+    const mockSetItem = vi.fn();
 
     beforeEach(() => {
         useNavigate.mockImplementation(() => mockNavigate);
         axios.post.mockClear();
         mockNavigate.mockClear();
-        localStorage.clear();
-        window.alert = vi.fn();
+        mockSetItem.mockClear();
+        
         // 重置 localStorage mock
         Object.defineProperty(window, 'localStorage', {
             value: {
                 getItem: vi.fn(),
-                setItem: vi.fn(),
+                setItem: mockSetItem,
                 removeItem: vi.fn(),
                 clear: vi.fn(),
             },
             writable: true,
         });
+        
+        window.alert = vi.fn();
     });
 
     test('渲染登录表单', () => {
@@ -74,8 +77,8 @@ describe('Login Component', () => {
                 username: 'testuser',
                 password: 'password123'
             });
-            expect(localStorage.setItem).toHaveBeenCalledWith('token', 'fake-token');
-            expect(localStorage.setItem).toHaveBeenCalledWith('user', JSON.stringify({ id: 1, username: 'testuser' }));
+            expect(mockSetItem).toHaveBeenCalledWith('token', 'fake-token');
+            expect(mockSetItem).toHaveBeenCalledWith('user', JSON.stringify({ id: 1, username: 'testuser' }));
             expect(mockNavigate).toHaveBeenCalledWith('/profile');
         });
     });
