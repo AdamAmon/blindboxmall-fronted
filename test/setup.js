@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // 模拟 matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -16,14 +17,14 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // 模拟 IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+window.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
 
 // 模拟 ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+window.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
@@ -36,7 +37,7 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-global.localStorage = localStorageMock;
+window.localStorage = localStorageMock;
 
 // 模拟 sessionStorage
 const sessionStorageMock = {
@@ -45,4 +46,4 @@ const sessionStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-global.sessionStorage = sessionStorageMock; 
+window.sessionStorage = sessionStorageMock; 

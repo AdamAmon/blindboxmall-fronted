@@ -31,11 +31,17 @@ export default defineConfig([
     files: ['**/*.test.jsx'],
     languageOptions: {
       globals: {
+        ...globals.browser,
         ...globals.jest,
+        vi: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
       }
-    },
-    env: {
-      jest: true
     }
   }
 ])

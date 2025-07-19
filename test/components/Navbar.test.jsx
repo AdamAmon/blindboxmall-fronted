@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import { renderWithRouter } from '../utils';
 import Navbar from '../../src/components/Navbar';
 
@@ -16,7 +16,6 @@ vi.mock('react-router-dom', async () => {
 describe('Navbar Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
   });
 
   describe('未登录状态', () => {
@@ -54,7 +53,7 @@ describe('Navbar Component', () => {
         username: 'testuser'
       };
       // 模拟 localStorage.getItem 返回用户数据
-      localStorage.getItem.mockImplementation((key) => {
+      window.localStorage.getItem.mockImplementation((key) => {
         if (key === 'user') {
           return JSON.stringify(mockUser);
         }

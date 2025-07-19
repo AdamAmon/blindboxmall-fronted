@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
 export default function AddressManageModal({ userId, open, onClose, onSelectDefault }) {
@@ -9,21 +9,21 @@ export default function AddressManageModal({ userId, open, onClose, onSelectDefa
   const [form, setForm] = useState({ recipient: '', phone: '', province: '', city: '', district: '', detail: '', is_default: false });
   const [formMode, setFormMode] = useState('add');
 
-  useEffect(() => {
-    if (open) fetchList();
-  }, [open]);
-
-  const fetchList = async () => {
+  const fetchList = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get('/api/address/list', { params: { userId } });
       setList(res.data.data || []);
-    } catch (e) {
+    } catch {
       setError('获取地址失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    if (open) fetchList();
+  }, [open, fetchList]);
 
   const handleEdit = (item) => {
     setEditItem(item);
