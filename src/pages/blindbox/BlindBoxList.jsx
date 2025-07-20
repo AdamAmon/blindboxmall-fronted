@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -11,11 +11,7 @@ const BlindBoxList = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [filterStatus, setFilterStatus] = useState(1); // 1: 上架, 0: 下架
 
-    useEffect(() => {
-        fetchBlindBoxes();
-    }, [currentPage, searchKeyword, filterStatus]);
-
-    const fetchBlindBoxes = async () => {
+    const fetchBlindBoxes = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get('http://localhost:7001/api/blindbox', {
@@ -36,7 +32,11 @@ const BlindBoxList = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, searchKeyword, filterStatus]);
+
+    useEffect(() => {
+        fetchBlindBoxes();
+    }, [fetchBlindBoxes]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -45,24 +45,6 @@ const BlindBoxList = () => {
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
-    };
-
-    const getRarityColor = (rarity) => {
-        switch (rarity) {
-            case 1: return 'bg-gray-100 text-gray-800';
-            case 2: return 'bg-blue-100 text-blue-800';
-            case 3: return 'bg-purple-100 text-purple-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    const getRarityText = (rarity) => {
-        switch (rarity) {
-            case 1: return '普通';
-            case 2: return '稀有';
-            case 3: return '隐藏';
-            default: return '普通';
-        }
     };
 
     if (loading) {

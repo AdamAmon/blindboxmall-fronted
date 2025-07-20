@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
@@ -18,12 +18,7 @@ const ManageBoxItems = () => {
         probability: 0.5
     });
 
-    useEffect(() => {
-        fetchBlindBox();
-        fetchBoxItems();
-    }, [blindBoxId]);
-
-    const fetchBlindBox = async () => {
+    const fetchBlindBox = useCallback(async () => {
         try {
             const response = await axios.get(`http://localhost:7001/api/blindbox/${blindBoxId}`, {
                 headers: {
@@ -36,9 +31,9 @@ const ManageBoxItems = () => {
         } catch (error) {
             console.error('获取盲盒信息失败:', error);
         }
-    };
+    }, [blindBoxId]);
 
-    const fetchBoxItems = async () => {
+    const fetchBoxItems = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get(`http://localhost:7001/api/blindbox/${blindBoxId}/items`, {
@@ -46,7 +41,6 @@ const ManageBoxItems = () => {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-
             if (response.data.code === 200) {
                 setBoxItems(response.data.data);
             }
@@ -55,7 +49,12 @@ const ManageBoxItems = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [blindBoxId]);
+
+    useEffect(() => {
+        fetchBlindBox();
+        fetchBoxItems();
+    }, [fetchBlindBox, fetchBoxItems]);
 
     const handleCreateItem = async () => {
         try {

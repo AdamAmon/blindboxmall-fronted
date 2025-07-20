@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -19,30 +19,8 @@ const AdminDashboard = () => {
     });
     const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
-    // 检查用户权限
-    if (!user || user.role !== 'admin') {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-semibold text-gray-600 mb-2">无权限访问</h2>
-                    <p className="text-gray-500 mb-4">只有管理员用户才能访问此页面</p>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
-                    >
-                        返回首页
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    useEffect(() => {
-        fetchBlindBoxes();
-        fetchStats();
-    }, [currentPage, searchKeyword]);
-
-    const fetchBlindBoxes = async () => {
+    // hooks必须在组件顶层调用
+    const fetchBlindBoxes = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get('http://localhost:7001/api/blindbox', {
@@ -65,9 +43,9 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, searchKeyword]);
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         try {
             const response = await axios.get('http://localhost:7001/api/blindbox', {
                 params: { limit: 1000 },
@@ -88,7 +66,30 @@ const AdminDashboard = () => {
         } catch (error) {
             console.error('获取统计数据失败:', error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchBlindBoxes();
+        fetchStats();
+    }, [fetchBlindBoxes, fetchStats]);
+
+    // 权限判断提前
+    if (!user || user.role !== 'admin') {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-semibold text-gray-600 mb-2">无权限访问</h2>
+                    <p className="text-gray-500 mb-4">只有管理员用户才能访问此页面</p>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+                    >
+                        返回首页
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const handleSearch = (e) => {
         e.preventDefault();

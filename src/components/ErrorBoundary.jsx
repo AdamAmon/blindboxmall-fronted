@@ -34,7 +34,7 @@ const ErrorBoundary = () => {
                         返回首页
                     </button>
                 </div>
-                {process.env.NODE_ENV === 'development' && (
+                {import.meta.env.MODE === 'development' && (
                     <details className="mt-6 text-left">
                         <summary className="cursor-pointer text-sm text-gray-500">
                             错误详情 (开发模式)
