@@ -24,7 +24,21 @@ export default function Login() {
             if (response.data.code === 200) {
                 localStorage.setItem('token', response.data.result.token);
                 localStorage.setItem('user', JSON.stringify(response.data.result.user));
-                navigate('/profile');
+                
+                // 根据用户角色跳转到相应页面
+                const user = response.data.result.user;
+                switch (user.role) {
+                    case 'admin':
+                        navigate('/admin');
+                        break;
+                    case 'seller':
+                        navigate('/seller');
+                        break;
+                    case 'customer':
+                    default:
+                        navigate('/blindboxes');
+                        break;
+                }
             } else {
                 setError(response.data.message || '登录失败');
             }
