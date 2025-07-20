@@ -13,6 +13,7 @@ import ManageBoxItems from '../pages/seller/ManageBoxItems';
 import CreateBoxItem from '../pages/seller/CreateBoxItem';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { ProtectedRoute, RedirectIfLoggedIn } from './routerGuards';
 
 // 将ProtectedRoute和RedirectIfLoggedIn移到src/router/routerGuards.js
 // 这里只保留router对象的导出
