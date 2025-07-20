@@ -15,9 +15,32 @@ const Navbar = () => {
         navigate('/login');
     };
 
-    // 如果用户未登录，不显示导航栏
+    // 未登录时显示品牌、登录、注册按钮
     if (!user || !token) {
-        return null;
+        return (
+            <nav className="bg-white shadow-lg border-b" data-testid="navbar">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+                    <div className="flex items-center">
+                        <span className="text-2xl mr-2">🎁</span>
+                        <span className="text-xl font-bold text-gray-800">盲盒商城</span>
+                    </div>
+                    <div>
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="mr-2 px-4 py-2 bg-purple-600 text-white rounded"
+                        >
+                            登录
+                        </button>
+                        <button
+                            onClick={() => navigate('/register')}
+                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded"
+                        >
+                            注册
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        );
     }
 
     const getNavItems = () => {
@@ -49,7 +72,7 @@ const Navbar = () => {
     const navItems = getNavItems();
 
     return (
-        <nav className="bg-white shadow-lg border-b">
+        <nav className="bg-white shadow-lg border-b" data-testid="navbar">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     {/* Logo and Brand */}

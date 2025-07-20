@@ -2,37 +2,32 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import Login from '../../src/pages/user/Login';
-import { useNavigate } from 'react-router-dom';
 import { vi } from 'vitest';
 
+const mockNavigate = vi.fn();
+
 vi.mock('axios');
-vi.mock('react-router-dom', () => ({
-    ...vi.importActual('react-router-dom'),
-    useNavigate: vi.fn(),
-}));
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom');
+    return {
+        ...actual,
+        useNavigate: () => mockNavigate,
+    };
+});
 
 describe('Login Component', () => {
-    const mockNavigate = vi.fn();
     const mockSetItem = vi.fn();
 
     beforeEach(() => {
-        useNavigate.mockImplementation(() => mockNavigate);
-        axios.post.mockClear();
         mockNavigate.mockClear();
         mockSetItem.mockClear();
-        
-        // 重置 localStorage mock
+        // 还原 jsdom 的 localStorage，确保 setItem 存在
         Object.defineProperty(window, 'localStorage', {
-            value: {
-                getItem: vi.fn(),
-                setItem: mockSetItem,
-                removeItem: vi.fn(),
-                clear: vi.fn(),
-            },
+            value: window.localStorage,
             writable: true,
         });
-        
-        window.alert = vi.fn();
+        vi.restoreAllMocks();
+        vi.spyOn(window.localStorage, 'setItem');
     });
 
     test('渲染登录表单', () => {
@@ -59,10 +54,10 @@ describe('Login Component', () => {
         // 模拟API成功响应
         axios.post.mockResolvedValue({
             data: {
-                code: 200,
-                result: {
+                success: true,
+                data: {
                     token: 'fake-token',
-                    user: { id: 1, username: 'testuser' }
+                    user: { id: 1, username: 'testuser', role: 'customer' }
                 }
             }
         });
@@ -77,9 +72,9 @@ describe('Login Component', () => {
                 username: 'testuser',
                 password: 'password123'
             });
-            expect(mockSetItem).toHaveBeenCalledWith('token', 'fake-token');
-            expect(mockSetItem).toHaveBeenCalledWith('user', JSON.stringify({ id: 1, username: 'testuser' }));
-            expect(mockNavigate).toHaveBeenCalledWith('/profile');
+            expect(window.localStorage.setItem).toHaveBeenCalledWith('token', 'fake-token');
+            expect(window.localStorage.setItem).toHaveBeenCalledWith('user', JSON.stringify({ id: 1, username: 'testuser', role: 'customer' }));
+            expect(mockNavigate).toHaveBeenCalledWith('/blindboxes');
         });
     });
 

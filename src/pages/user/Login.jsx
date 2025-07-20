@@ -21,12 +21,12 @@ export default function Login() {
         setLoading(true);
         try {
             const response = await axios.post('/api/auth/login', credentials);
-            if (response.data.code === 200) {
-                localStorage.setItem('token', response.data.result.token);
-                localStorage.setItem('user', JSON.stringify(response.data.result.user));
+            if (response.data.success === true) {
+                localStorage.setItem('token', response.data.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.data.user));
                 
                 // 根据用户角色跳转到相应页面
-                const user = response.data.result.user;
+                const user = response.data.data.user;
                 switch (user.role) {
                     case 'admin':
                         navigate('/admin');
