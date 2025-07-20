@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -14,12 +14,7 @@ const BlindBoxDetail = () => {
     const [drawResult, setDrawResult] = useState(null);
     const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
-    useEffect(() => {
-        fetchBlindBoxDetail();
-        fetchBoxItems();
-    }, [id]);
-
-    const fetchBlindBoxDetail = async () => {
+    const fetchBlindBoxDetail = useCallback(async () => {
         try {
             const response = await axios.get(`http://localhost:7001/api/blindbox/${id}`);
             if (response.data.code === 200) {
@@ -30,9 +25,9 @@ const BlindBoxDetail = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
-    const fetchBoxItems = async () => {
+    const fetchBoxItems = useCallback(async () => {
         try {
             const response = await axios.get(`http://localhost:7001/api/blindbox/${id}/items`);
             if (response.data.code === 200) {
@@ -41,7 +36,12 @@ const BlindBoxDetail = () => {
         } catch (error) {
             console.error('获取盲盒商品失败:', error);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchBlindBoxDetail();
+        fetchBoxItems();
+    }, [fetchBlindBoxDetail, fetchBoxItems]);
 
     const handleDraw = async () => {
         if (!user) {

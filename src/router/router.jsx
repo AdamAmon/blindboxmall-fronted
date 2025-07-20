@@ -14,52 +14,8 @@ import CreateBoxItem from '../pages/seller/CreateBoxItem';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import ErrorBoundary from '../components/ErrorBoundary';
 
-// 路由守卫组件
-const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-    const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-    const token = localStorage.getItem('token');
-
-    if (!user || !token) {
-        return <Navigate to="/login" replace />;
-    }
-
-    if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-        // 根据用户角色重定向到相应页面
-        switch (user.role) {
-            case 'admin':
-                return <Navigate to="/admin" replace />;
-            case 'seller':
-                return <Navigate to="/seller" replace />;
-            case 'customer':
-            default:
-                return <Navigate to="/blindboxes" replace />;
-        }
-    }
-
-    return children;
-};
-
-// 已登录用户重定向组件
-const RedirectIfLoggedIn = ({ children }) => {
-    const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-    const token = localStorage.getItem('token');
-
-    if (user && token) {
-        // 根据用户角色重定向到相应页面
-        switch (user.role) {
-            case 'admin':
-                return <Navigate to="/admin" replace />;
-            case 'seller':
-                return <Navigate to="/seller" replace />;
-            case 'customer':
-            default:
-                return <Navigate to="/blindboxes" replace />;
-        }
-    }
-
-    return children;
-};
-
+// 将ProtectedRoute和RedirectIfLoggedIn移到src/router/routerGuards.js
+// 这里只保留router对象的导出
 const router = createBrowserRouter([
     {
         path: '/',

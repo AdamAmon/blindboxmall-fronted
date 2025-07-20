@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -12,11 +12,7 @@ const ManageBlindBoxes = () => {
     const [editingBox, setEditingBox] = useState(null);
     const [editForm, setEditForm] = useState({});
 
-    useEffect(() => {
-        fetchBlindBoxes();
-    }, [currentPage, searchKeyword]);
-
-    const fetchBlindBoxes = async () => {
+    const fetchBlindBoxes = useCallback(async () => {
         try {
             setLoading(true);
             const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
@@ -43,7 +39,11 @@ const ManageBlindBoxes = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, searchKeyword]);
+
+    useEffect(() => {
+        fetchBlindBoxes();
+    }, [fetchBlindBoxes]);
 
     const handleSearch = (e) => {
         e.preventDefault();
