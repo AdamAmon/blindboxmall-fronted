@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import reactLogo from '../../assets/react.svg';
 import AddressManageModal from '../../components/AddressManageModal';
 import RechargeModal from '../../components/RechargeModal';
-import { useRef } from 'react';
 
 const DEFAULT_AVATAR = reactLogo;
 
@@ -170,6 +169,45 @@ export default function Profile() {
   const pollingRef = useRef(null);
   const navigate = useNavigate();
 
+  // 补充 handleLogout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  // 补充 handleSaveUser
+  const handleSaveUser = async (newUser) => {
+    try {
+      const res = await axios.get('/api/user/get', { params: { id: newUser.id } });
+      const freshUser = res.data.data;
+      setUser(freshUser);
+      localStorage.setItem('user', JSON.stringify(freshUser));
+    } catch {
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+    }
+  };
+
+  const fetchDefaultAddress = useCallback(async (userId) => {
+    try {
+      const res = await axios.get('/api/address/list', { params: { userId } });
+      const list = res.data.data || [];
+      setDefaultAddress(list.find(addr => addr.is_default) || null);
+    } catch {
+      setDefaultAddress(null);
+    }
+  }, []);
+
+  const fetchRechargeRecords = useCallback(async (uid) => {
+    try {
+      const res = await axios.get('/api/pay/records', { params: { userId: uid } });
+      setRechargeRecords(res.data.data || []);
+    } catch {
+      setRechargeRecords([]);
+    }
+  }, []);
+
   useEffect(() => {
     // 只从 localStorage 拿 token，用户信息始终从后端拉取
     const token = localStorage.getItem('token');
@@ -202,46 +240,7 @@ export default function Profile() {
       .catch(() => {
         navigate('/login');
       });
-  }, [navigate]);
-
-  const fetchDefaultAddress = async (userId) => {
-    try {
-      const res = await axios.get('/api/address/list', { params: { userId } });
-      const list = res.data.data || [];
-      setDefaultAddress(list.find(addr => addr.is_default) || null);
-    } catch {
-      setDefaultAddress(null);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
-  const handleSaveUser = async (newUser) => {
-    // 保存后也只从后端拉取
-    try {
-      const res = await axios.get('/api/user/get', { params: { id: newUser.id } });
-      const freshUser = res.data.data;
-      setUser(freshUser);
-      localStorage.setItem('user', JSON.stringify(freshUser));
-    } catch {
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
-    }
-  };
-
-  // 查询充值记录
-  const fetchRechargeRecords = async (uid) => {
-    try {
-      const res = await axios.get('/api/pay/records', { params: { userId: uid } });
-      setRechargeRecords(res.data.data || []);
-    } catch {
-      setRechargeRecords([]);
-    }
-  };
+  }, [navigate, fetchDefaultAddress, fetchRechargeRecords]);
 
   // 查询余额（用户信息）
   const fetchUser = async (uid) => {
@@ -308,7 +307,7 @@ export default function Profile() {
     } else if (pollingRef.current) {
       clearInterval(pollingRef.current);
     }
-  }, [showRecharge, user, rechargeSuccess]);
+  }, [showRecharge, user, rechargeSuccess, fetchRechargeRecords]);
 
 
 
@@ -339,29 +338,63 @@ export default function Profile() {
         {/* 左侧欢迎区+操作区 */}
         <div className="w-full md:w-80 flex-shrink-0 flex flex-col items-center md:items-start md:mr-12">
           <div className="flex flex-col items-center mt-6 mb-4 w-full">
-            <img
-              src={user.avatar || DEFAULT_AVATAR}
-              alt="头像"
-              className="w-20 h-20 rounded-full border object-cover bg-gray-100 mb-2"
-              onError={e => { e.target.onerror = null; e.target.src = DEFAULT_AVATAR; }}
-            />
-            <div className="text-2xl font-bold mt-2">{user.nickname}</div>
+            <div className="relative mb-2">
+              <img
+                src={user.avatar || DEFAULT_AVATAR}
+                alt="头像"
+                className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover bg-gray-100 mb-2"
+                onError={e => { e.target.onerror = null; e.target.src = DEFAULT_AVATAR; }}
+              />
+              <span className="absolute bottom-0 right-0 bg-green-500 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center">
+                <span className="material-icons text-white text-base">check_circle</span>
+              </span>
+            </div>
+            <div className="text-2xl font-bold mt-2 text-gray-800 flex items-center">
+              {user.nickname}
+              <span className="ml-2 px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-xs font-semibold">{user.role === 'customer' ? '顾客' : user.role === 'seller' ? '商家' : '管理员'}</span>
+            </div>
             <div className="text-gray-500 text-sm">{user.username}</div>
             <div className="text-gray-500 text-sm mt-1">欢迎使用盲盒商城</div>
             {/* 余额展示和充值按钮 */}
             <div className="mt-4 w-full flex flex-col items-center">
-              <div className="text-lg font-semibold text-green-700">余额：￥{user.balance?.toFixed(2) ?? '0.00'}</div>
+              <div className="text-lg font-semibold text-green-700 flex items-center">
+                <span className="material-icons mr-1">account_balance_wallet</span>余额：￥{user.balance?.toFixed(2) ?? '0.00'}
+              </div>
               <button
-                className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                className="mt-2 px-4 py-2 bg-gradient-to-r from-green-400 to-green-600 text-white rounded shadow hover:from-green-500 hover:to-green-700 transition font-bold"
                 onClick={() => setShowRecharge(true)}
-              >余额充值</button>
+              >
+                <span className="material-icons mr-1 align-middle">add_circle</span>余额充值
+              </button>
             </div>
           </div>
-          <QuickActions onAddressManage={() => setShowAddress(true)} onLogout={handleLogout} />
+          <div className="w-full grid grid-cols-2 gap-4 mt-6 mb-8">
+            <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-blue-50 transition" onClick={() => setShowAddress(true)}>
+              <span className="material-icons text-blue-500 text-2xl mb-1">location_on</span>
+              <span className="text-sm font-semibold text-gray-700">地址管理</span>
+            </button>
+            <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-red-50 transition" onClick={handleLogout}>
+              <span className="material-icons text-red-500 text-2xl mb-1">logout</span>
+              <span className="text-sm font-semibold text-gray-700">退出登录</span>
+            </button>
+          </div>
+          {/* 新增快捷入口 */}
+          <div className="w-full grid grid-cols-2 gap-4 mb-8">
+            <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-purple-50 transition" onClick={() => navigate('/order/list')}>
+              <span className="material-icons text-purple-500 text-2xl mb-1">list_alt</span>
+              <span className="text-sm font-semibold text-gray-700">我的订单</span>
+            </button>
+            <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-yellow-50 transition" onClick={() => navigate('/prizes')}>
+              <span className="material-icons text-yellow-500 text-2xl mb-1">emoji_events</span>
+              <span className="text-sm font-semibold text-gray-700">我的奖品</span>
+            </button>
+          </div>
           {/* 充值记录展示 */}
           <div className="w-full mt-8 bg-white rounded-xl shadow p-4">
             <div className="flex justify-between items-center mb-2">
-              <div className="font-bold text-lg">充值记录</div>
+              <div className="font-bold text-lg flex items-center">
+                <span className="material-icons text-green-500 mr-1">history</span>充值记录
+              </div>
               <div className="flex space-x-2">
                 <button 
                   onClick={() => {
@@ -371,7 +404,7 @@ export default function Profile() {
                   className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
                 >
                   <span className="material-icons text-base mr-1">refresh</span>
-                  刷新记录
+                  刷新
                 </button>
                 <button 
                   onClick={() => setShowRechargeRecords(!showRechargeRecords)}
@@ -380,7 +413,7 @@ export default function Profile() {
                   <span className="material-icons text-base mr-1">
                     {showRechargeRecords ? 'visibility_off' : 'visibility'}
                   </span>
-                  {showRechargeRecords ? '隐藏记录' : '查看记录'}
+                  {showRechargeRecords ? '隐藏' : '查看'}
                 </button>
               </div>
             </div>
@@ -406,14 +439,55 @@ export default function Profile() {
             </table>
             ) : (
               <div className="text-center text-gray-400 py-4">
-                点击"查看记录"按钮查看充值历史
+                点击"查看"按钮查看充值历史
               </div>
             )}
           </div>
         </div>
         {/* 右侧信息卡片 */}
         <div className="flex-1 flex flex-col items-center mt-8 md:mt-0">
-          <UserInfoCard user={user} defaultAddress={defaultAddress} onEdit={() => setShowEdit(true)} onAddressManage={() => setShowAddress(true)} />
+          <div className="bg-white rounded-xl shadow p-8 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <div className="font-bold text-xl flex items-center">
+                <span className="material-icons text-blue-500 mr-1">person</span>个人信息
+              </div>
+              <button className="text-blue-600 hover:underline text-sm flex items-center" onClick={() => setShowEdit(true)}>
+                <span className="material-icons text-base mr-1">edit</span> 编辑信息
+              </button>
+            </div>
+            <table className="w-full text-left text-gray-700">
+              <tbody>
+                <tr>
+                  <td className="py-2 font-medium w-24">昵称</td>
+                  <td>{user.nickname || <span className="text-gray-400">未填写</span>}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">用户名</td>
+                  <td>{user.username || <span className="text-gray-400">未填写</span>}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">邮箱</td>
+                  <td>{user.email || <span className="text-gray-400">未填写</span>}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">手机号</td>
+                  <td>{user.phone || <span className="text-gray-400">未填写</span>}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">角色</td>
+                  <td>{user.role === 'customer' ? '顾客' : user.role === 'seller' ? '商家' : '管理员'}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">默认收货地址</td>
+                  <td>{defaultAddress ? (
+                    <span>{defaultAddress.recipient}，{defaultAddress.phone}，{defaultAddress.province}{defaultAddress.city}{defaultAddress.district}{defaultAddress.detail}</span>
+                  ) : <span className="text-gray-400">未设置</span>}
+                    <button className="ml-2 text-blue-600 hover:underline text-xs" onClick={() => setShowAddress(true)}>管理</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
         <EditUserModal user={user} open={showEdit} onClose={() => setShowEdit(false)} onSave={handleSaveUser} />
         <AddressManageModal userId={user.id} open={showAddress} onClose={() => { setShowAddress(false); fetchDefaultAddress(user.id); }} onSelectDefault={() => fetchDefaultAddress(user.id)} />

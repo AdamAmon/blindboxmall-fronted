@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const BlindBoxList = () => {
     const navigate = useNavigate();
@@ -10,6 +11,25 @@ const BlindBoxList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [filterStatus, setFilterStatus] = useState(1); // 1: 上架, 0: 下架
+
+    const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+
+    const handleAddToCart = async (blindBoxId) => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+        try {
+            await axios.post('/api/cart/add', {
+                user_id: user.id,
+                blind_box_id: blindBoxId,
+                quantity: 1
+            });
+            toast.success('已加入购物车');
+        } catch {
+            toast.error('加入购物车失败');
+        }
+    };
 
     const fetchBlindBoxes = useCallback(async () => {
         try {
@@ -145,15 +165,26 @@ const BlindBoxList = () => {
                                     <span className="text-sm text-gray-500">
                                         评论: {blindBox.comment_count}
                                     </span>
-                                    <button
-                                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigate(`/blindbox/${blindBox.id}`);
-                                        }}
-                                    >
-                                        查看详情
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/blindbox/${blindBox.id}`);
+                                            }}
+                                        >
+                                            查看详情
+                                        </button>
+                                        <button
+                                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAddToCart(blindBox.id);
+                                            }}
+                                        >
+                                            加入购物车
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

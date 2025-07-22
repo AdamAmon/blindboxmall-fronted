@@ -14,6 +14,12 @@ import CreateBoxItem from '../pages/seller/CreateBoxItem';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { ProtectedRoute, RedirectIfLoggedIn } from './routerGuards';
+import Cart from '../pages/cart/Cart';
+import OrderConfirm from '../pages/order/OrderConfirm';
+import OrderList from '../pages/order/OrderList';
+import OrderDetail from '../pages/order/OrderDetail';
+import PrizeList from '../pages/user/PrizeList';
+import PayResult from '../pages/order/PayResult';
 
 // 将ProtectedRoute和RedirectIfLoggedIn移到src/router/routerGuards.js
 // 这里只保留router对象的导出
@@ -64,6 +70,54 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <BlindBoxDetail />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'cart',
+                element: (
+                    <ProtectedRoute>
+                        <Cart />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'order/confirm',
+                element: (
+                    <ProtectedRoute>
+                        <OrderConfirm />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'order/list',
+                element: (
+                    <ProtectedRoute>
+                        <OrderList />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'order/detail/:id',
+                element: (
+                    <ProtectedRoute>
+                        <OrderDetail />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'order/payresult',
+                element: (
+                    <ProtectedRoute>
+                        <PayResult />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'prizes',
+                element: (
+                    <ProtectedRoute>
+                        <PrizeList />
                     </ProtectedRoute>
                 )
             },

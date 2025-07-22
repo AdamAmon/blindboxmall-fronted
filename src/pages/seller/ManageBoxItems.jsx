@@ -97,13 +97,16 @@ const ManageBoxItems = () => {
 
     const handleUpdate = async () => {
         try {
-            const response = await axios.put(`http://localhost:7001/api/blindbox/items/${editingItem.id}`, editForm, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
+            const response = await axios.put(
+                `http://localhost:7001/api/blindbox/items/${editingItem.id}`,
+                { ...editForm, id: editingItem.id }, // 确保包含id字段
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    }
                 }
-            });
-
+            );
             if (response.data.code === 200) {
                 alert('更新成功！');
                 setEditingItem(null);
@@ -384,27 +387,34 @@ const ManageBoxItems = () => {
                             <h3 className="text-xl font-bold mb-4">编辑商品</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">商品名称</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="edit-name">商品名称</label>
                                     <input
+                                        id="edit-name"
                                         type="text"
                                         value={editForm.name}
                                         onChange={(e) => setEditForm({...editForm, name: e.target.value})}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        required
+                                        aria-required="true"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">商品图片URL</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="edit-image">商品图片URL</label>
                                     <input
+                                        id="edit-image"
                                         type="text"
                                         value={editForm.image}
                                         onChange={(e) => setEditForm({...editForm, image: e.target.value})}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        required
+                                        aria-required="true"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">稀有度</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="edit-rarity">稀有度</label>
                                         <select
+                                            id="edit-rarity"
                                             value={editForm.rarity}
                                             onChange={(e) => setEditForm({...editForm, rarity: parseInt(e.target.value)})}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -415,8 +425,9 @@ const ManageBoxItems = () => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">概率 (0-1)</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="edit-probability">概率 (0-1)</label>
                                         <input
+                                            id="edit-probability"
                                             type="number"
                                             value={editForm.probability}
                                             onChange={(e) => setEditForm({...editForm, probability: parseFloat(e.target.value) || 0})}
@@ -424,6 +435,8 @@ const ManageBoxItems = () => {
                                             min="0"
                                             max="1"
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                            required
+                                            aria-required="true"
                                         />
                                     </div>
                                 </div>
@@ -432,12 +445,19 @@ const ManageBoxItems = () => {
                                 <button
                                     onClick={() => setEditingItem(null)}
                                     className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    title="取消编辑"
                                 >
                                     取消
                                 </button>
                                 <button
                                     onClick={handleUpdate}
-                                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                                    className={`px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg ${
+                                        !editForm.name || !editForm.image || editForm.probability < 0 || editForm.probability > 1 ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
+                                    disabled={
+                                        !editForm.name || !editForm.image || editForm.probability < 0 || editForm.probability > 1
+                                    }
+                                    title={!editForm.name ? '请输入商品名称' : !editForm.image ? '请输入图片URL' : (editForm.probability < 0 || editForm.probability > 1) ? '概率需在0-1之间' : '保存'}
                                 >
                                     保存
                                 </button>
