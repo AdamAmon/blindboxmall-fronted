@@ -51,7 +51,8 @@ export default function Register() {
                 phone: formData.phone,
                 role: formData.role
             });
-            if (response.data.code === 200) {
+            if (response.data.success) {
+                alert('注册成功，请登录！');
                 navigate('/login');
             } else {
                 setError(response.data.message || '注册失败，请重试');

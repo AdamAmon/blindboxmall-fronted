@@ -4,6 +4,8 @@ import { RouterProvider } from 'react-router-dom';
 import router from './router/router';
 import './index.css';
 import axios from 'axios';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
@@ -16,5 +18,6 @@ axios.interceptors.request.use(config => {
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <RouterProvider router={router} />
+        <ToastContainer />
     </React.StrictMode>
 );
