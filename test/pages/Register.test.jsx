@@ -68,7 +68,8 @@ describe('Register Component', () => {
         axios.post.mockResolvedValue({
             data: {
                 code: 200,
-                message: '注册成功'
+                message: '注册成功',
+                success: true // 必须加上
             }
         });
 
