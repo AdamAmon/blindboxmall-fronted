@@ -50,6 +50,7 @@ const Navbar = () => {
                     { name: '管理员面板', path: '/admin', icon: '🔒' },
                     { name: '盲盒管理', path: '/seller', icon: '📦' },
                     { name: '浏览盲盒', path: '/blindboxes', icon: '🎲' },
+                    { name: '玩家秀', path: '/shows', icon: '🌟' },
                     { name: '购物车', path: '/cart', icon: '🛒' },
                     { name: '个人中心', path: '/profile', icon: '👤' }
                 ];
@@ -59,6 +60,7 @@ const Navbar = () => {
                     { name: '创建盲盒', path: '/seller/blindbox/create', icon: '➕' },
                     { name: '管理盲盒', path: '/seller/blindbox/manage', icon: '📋' },
                     { name: '浏览盲盒', path: '/blindboxes', icon: '🎲' },
+                    { name: '玩家秀', path: '/shows', icon: '🌟' },
                     { name: '购物车', path: '/cart', icon: '🛒' },
                     { name: '个人中心', path: '/profile', icon: '👤' }
                 ];
@@ -66,6 +68,7 @@ const Navbar = () => {
             default:
                 return [
                     { name: '盲盒商城', path: '/blindboxes', icon: '🎲' },
+                    { name: '玩家秀', path: '/shows', icon: '🌟' },
                     { name: '购物车', path: '/cart', icon: '🛒' },
                     { name: '个人中心', path: '/profile', icon: '👤' }
                 ];
