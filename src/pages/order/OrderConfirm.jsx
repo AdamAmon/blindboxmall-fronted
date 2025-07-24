@@ -82,8 +82,10 @@ const OrderConfirm = () => {
           // 余额支付直接跳转订单详情
           navigate(`/order/detail/${orderId}`);
         } else if (payMethod === 'alipay' && payRes.data.payUrl) {
-          // 支付宝支付跳转到本地PayResult页面
-          navigate(`/order/payresult?orderId=${orderId}`);
+          // 支付宝支付在新标签页打开二维码
+          window.open(payRes.data.payUrl, '_blank');
+          // 跳转到订单详情页等待支付
+          navigate(`/order/detail/${orderId}`);
         }
       } else {
         setError(res.data.message || '下单失败');
