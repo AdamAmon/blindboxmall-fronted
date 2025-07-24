@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const BlindBoxDetail = () => {
     const { id } = useParams();
@@ -8,10 +9,7 @@ const BlindBoxDetail = () => {
     const [blindBox, setBlindBox] = useState(null);
     const [boxItems, setBoxItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [drawing, setDrawing] = useState(false);
     const [drawQuantity, setDrawQuantity] = useState(1);
-    const [showDrawResult, setShowDrawResult] = useState(false);
-    const [drawResult, setDrawResult] = useState(null);
     const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
     const fetchBlindBoxDetail = useCallback(async () => {
@@ -43,35 +41,22 @@ const BlindBoxDetail = () => {
         fetchBoxItems();
     }, [fetchBlindBoxDetail, fetchBoxItems]);
 
-    const handleDraw = async () => {
+    // 加入购物车逻辑
+    const handleAddToCart = async () => {
         if (!user) {
             alert('请先登录');
             navigate('/login');
             return;
         }
-
         try {
-            setDrawing(true);
-            const response = await axios.post('http://localhost:7001/api/blindbox/draw', {
+            await axios.post('http://localhost:7001/api/cart/add', {
+                user_id: user.id,
                 blind_box_id: parseInt(id),
                 quantity: drawQuantity
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
             });
-
-            if (response.data.code === 200) {
-                setDrawResult(response.data.data);
-                setShowDrawResult(true);
-                // 刷新盲盒信息（库存可能已更新）
-                fetchBlindBoxDetail();
-            }
-        } catch (error) {
-            console.error('抽奖失败:', error);
-            alert(error.response?.data?.message || '抽奖失败，请重试');
-        } finally {
-            setDrawing(false);
+            toast.success('已加入购物车');
+        } catch {
+            toast.error('加入购物车失败');
         }
     };
 
@@ -177,7 +162,7 @@ const BlindBoxDetail = () => {
                             {/* Draw Section */}
                             {blindBox.status === 1 && blindBox.stock > 0 && (
                                 <div className="border-t pt-6">
-                                    <h3 className="text-lg font-semibold mb-4">立即抽奖</h3>
+                                    <h3 className="text-lg font-semibold mb-4">加入购物车</h3>
                                     <div className="flex items-center space-x-4 mb-4">
                                         <label className="text-gray-600">数量:</label>
                                         <select
@@ -194,11 +179,10 @@ const BlindBoxDetail = () => {
                                         </span>
                                     </div>
                                     <button
-                                        onClick={handleDraw}
-                                        disabled={drawing}
-                                        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white py-3 rounded-lg font-semibold transition-colors"
+                                        onClick={handleAddToCart}
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors"
                                     >
-                                        {drawing ? '抽奖中...' : '立即抽奖'}
+                                        加入购物车
                                     </button>
                                 </div>
                             )}
@@ -244,52 +228,7 @@ const BlindBoxDetail = () => {
                     </div>
                 </div>
 
-                {/* Draw Result Modal */}
-                {showDrawResult && drawResult && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                            <h3 className="text-xl font-bold text-center mb-4">抽奖结果</h3>
-                            <div className="space-y-4">
-                                {drawResult.drawnItems.map((item, index) => (
-                                    <div key={index} className="border rounded-lg p-4 text-center">
-                                        <img
-                                            src={item.image}
-                                            alt={item.name}
-                                            className="w-20 h-20 object-cover mx-auto mb-2 rounded-lg"
-                                            onError={(e) => {
-                                                e.target.src = 'https://via.placeholder.com/80x80?text=商品图片';
-                                            }}
-                                        />
-                                        <h4 className="font-semibold text-gray-800">{item.name}</h4>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getRarityColor(item.rarity)}`}>
-                                            {getRarityText(item.rarity)}
-                                        </span>
-                                    </div>
-                                ))}
-                                <div className="text-center text-gray-600">
-                                    消费: ¥{drawResult.totalCost.toFixed(2)}
-                                </div>
-                            </div>
-                            <div className="flex space-x-4 mt-6">
-                                <button
-                                    onClick={() => setShowDrawResult(false)}
-                                    className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg"
-                                >
-                                    确定
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setShowDrawResult(false);
-                                        navigate('/profile');
-                                    }}
-                                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg"
-                                >
-                                    查看订单
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {/* 已移除抽奖结果弹窗 */}
             </div>
         </div>
     );
