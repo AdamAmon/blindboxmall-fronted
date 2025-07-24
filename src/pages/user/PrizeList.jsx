@@ -49,10 +49,6 @@ const PrizeList = () => {
     fetchPrizes();
   }, [user?.id, fetchPrizes, navigate]);
 
-  const handleShowCreate = (prize) => {
-    navigate('/shows/create', { state: { prize } });
-  };
-
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
       <h1 className="text-2xl font-bold mb-6">我的奖品</h1>
