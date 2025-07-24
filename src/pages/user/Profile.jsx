@@ -378,6 +378,13 @@ export default function Profile() {
               <span className="text-sm font-semibold text-gray-700">退出登录</span>
             </button>
           </div>
+          {/* 新增“秀奖品”入口 */}
+          <div className="w-full grid grid-cols-1 gap-4 mb-8">
+            <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-pink-50 transition" onClick={() => navigate('/shows/create')}>
+              <span className="material-icons text-pink-500 text-2xl mb-1">star</span>
+              <span className="text-sm font-semibold text-gray-700">秀奖品</span>
+            </button>
+          </div>
           {/* 新增快捷入口 */}
           <div className="w-full grid grid-cols-2 gap-4 mb-8">
             <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-purple-50 transition" onClick={() => navigate('/order/list')}>

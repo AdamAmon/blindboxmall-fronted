@@ -19,6 +19,9 @@ import OrderConfirm from '../pages/order/OrderConfirm';
 import OrderList from '../pages/order/OrderList';
 import OrderDetail from '../pages/order/OrderDetail';
 import PrizeList from '../pages/user/PrizeList';
+import PlayerShowList from '../pages/community/PlayerShowList';
+import PlayerShowDetail from '../pages/community/PlayerShowDetail';
+import PlayerShowCreate from '../pages/community/PlayerShowCreate';
 
 // 将ProtectedRoute和RedirectIfLoggedIn移到src/router/routerGuards.js
 // 这里只保留router对象的导出
@@ -109,6 +112,30 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <PrizeList />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'shows',
+                element: (
+                    <ProtectedRoute>
+                        <PlayerShowList />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'shows/:id',
+                element: (
+                    <ProtectedRoute>
+                        <PlayerShowDetail />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'shows/create',
+                element: (
+                    <ProtectedRoute>
+                        <PlayerShowCreate />
                     </ProtectedRoute>
                 )
             },
