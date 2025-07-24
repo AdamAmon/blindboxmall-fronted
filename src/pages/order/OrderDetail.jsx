@@ -1,6 +1,14 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+
+const statusMap = {
+  pending: '待支付',
+  delivering: '待发货',
+  delivered: '已送达',
+  completed: '已完成',
+  cancelled: '已取消',
+};
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -13,6 +21,7 @@ const OrderDetail = () => {
   const [openItemId, setOpenItemId] = useState(null);
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
   const navigate = useNavigate();
+  const pollingRef = useRef(null);
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
@@ -27,13 +36,27 @@ const OrderDetail = () => {
     }
   }, [id]);
 
+  // 自动轮询订单状态，直到不是pending为止
   useEffect(() => {
     if (!user?.id) {
       navigate('/login', { replace: true });
-    } else {
-      fetchOrder();
+      return;
     }
-  }, [user?.id, fetchOrder, navigate]);
+    fetchOrder();
+    if (pollingRef.current) clearInterval(pollingRef.current);
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await axios.get('/api/pay/order/get', { params: { id } });
+        if (res.data.data && res.data.data.status !== 'pending') {
+          setOrder(res.data.data);
+          clearInterval(pollingRef.current);
+        }
+      } catch {
+        // 轮询异常可忽略
+      }
+    }, 2000);
+    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+  }, [user?.id, fetchOrder, navigate, id]);
 
   const handleConfirm = async () => {
     setConfirming(true);
@@ -86,7 +109,7 @@ const OrderDetail = () => {
       <h1 className="text-2xl font-bold mb-6">订单详情</h1>
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="mb-2"><span className="font-semibold">订单号：</span>{order.id}</div>
-        <div className="mb-2"><span className="font-semibold">状态：</span>{order.status === 'pending' ? '待支付' : order.status === 'delivering' ? '待发货' : order.status === 'delivered' ? '已送达' : order.status === 'completed' ? '已完成' : order.status}</div>
+        <div className="mb-2"><span className="font-semibold">状态：</span>{statusMap[order.status] || order.status}</div>
         <div className="mb-2"><span className="font-semibold">收货地址：</span>{order.address?.recipient}，{order.address?.phone}，{order.address?.province}{order.address?.city}{order.address?.district}{order.address?.detail}</div>
         <div className="mb-2"><span className="font-semibold">下单时间：</span>{order.created_at && new Date(order.created_at).toLocaleString()}</div>
         <div className="mb-2"><span className="font-semibold">总价：</span>￥{order.total_amount}</div>

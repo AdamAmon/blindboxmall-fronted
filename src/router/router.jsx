@@ -19,7 +19,6 @@ import OrderConfirm from '../pages/order/OrderConfirm';
 import OrderList from '../pages/order/OrderList';
 import OrderDetail from '../pages/order/OrderDetail';
 import PrizeList from '../pages/user/PrizeList';
-import PayResult from '../pages/order/PayResult';
 
 // 将ProtectedRoute和RedirectIfLoggedIn移到src/router/routerGuards.js
 // 这里只保留router对象的导出
@@ -102,14 +101,6 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <OrderDetail />
-                    </ProtectedRoute>
-                )
-            },
-            {
-                path: 'order/payresult',
-                element: (
-                    <ProtectedRoute>
-                        <PayResult />
                     </ProtectedRoute>
                 )
             },
