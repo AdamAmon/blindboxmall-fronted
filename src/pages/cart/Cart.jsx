@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,6 +7,8 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [quantityMap, setQuantityMap] = useState({}); // {cartId: quantity}
+  const debounceTimers = useRef({});
   const navigate = useNavigate();
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
@@ -16,6 +18,10 @@ const Cart = () => {
     try {
       const res = await axios.get('/api/cart/list', { params: { user_id: user.id } });
       setCartItems(res.data.data || []);
+      // 初始化数量映射
+      const map = {};
+      (res.data.data || []).forEach(item => { map[item.id] = item.quantity; });
+      setQuantityMap(map);
     } catch {
       setError('获取购物车失败');
     } finally {
@@ -30,6 +36,24 @@ const Cart = () => {
       fetchCart();
     }
   }, [user?.id, fetchCart, navigate]);
+
+  // 防抖更新数量
+  const debouncedUpdateQuantity = (cartId, quantity) => {
+    if (debounceTimers.current[cartId]) {
+      clearTimeout(debounceTimers.current[cartId]);
+    }
+    debounceTimers.current[cartId] = setTimeout(() => {
+      handleQuantityChange(cartId, quantity);
+    }, 500);
+  };
+
+  const handleQuantityInput = (cartId, value, stock) => {
+    let quantity = parseInt(value) || 1;
+    if (quantity < 1) quantity = 1;
+    if (stock && quantity > stock) quantity = stock;
+    setQuantityMap(q => ({ ...q, [cartId]: quantity }));
+    debouncedUpdateQuantity(cartId, quantity);
+  };
 
   const handleQuantityChange = async (cartId, quantity) => {
     if (quantity < 1) return;
@@ -69,7 +93,6 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
-    // 跳转到订单确认页，或直接实现下单逻辑
     navigate('/order/confirm');
   };
 
@@ -107,11 +130,13 @@ const Cart = () => {
                     <input
                       type="number"
                       min={1}
-                      value={item.quantity}
+                      max={item.blindBox?.stock || 9999}
+                      value={quantityMap[item.id] ?? item.quantity}
                       disabled={updating}
-                      onChange={e => handleQuantityChange(item.id, parseInt(e.target.value))}
+                      onChange={e => handleQuantityInput(item.id, e.target.value, item.blindBox?.stock)}
                       className="w-16 px-2 py-1 border rounded"
                     />
+                    <span className="ml-2 text-xs text-gray-400">库存：{item.blindBox?.stock ?? '-'}</span>
                   </td>
                   <td className="py-2">￥{(item.quantity * (item.blindBox?.price || 0)).toFixed(2)}</td>
                   <td className="py-2">
