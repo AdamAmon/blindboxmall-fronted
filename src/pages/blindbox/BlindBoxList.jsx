@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import BlindBoxFilter from '../../components/BlindBoxFilter';
 import BlindBoxTabs from '../../components/BlindBoxTabs';
+import { useUser } from '../../hooks/useUser';
 
 const BlindBoxList = () => {
     const navigate = useNavigate();
@@ -24,7 +25,8 @@ const BlindBoxList = () => {
     const [sortBy, setSortBy] = useState('created_at');
     const [order, setOrder] = useState('desc');
 
-    const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    // 使用自定义 Hook 获取用户信息
+    const user = useUser();
 
     const handleAddToCart = async (blindBoxId) => {
         if (!user) {

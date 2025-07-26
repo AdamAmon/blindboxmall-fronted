@@ -15,9 +15,17 @@ axios.interceptors.request.use(config => {
   return config;
 });
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
-        <RouterProvider router={router} />
-        <ToastContainer />
-    </React.StrictMode>
+// 根据环境决定是否使用 StrictMode
+const RootComponent = import.meta.env.DEV ? (
+  <React.StrictMode>
+    <RouterProvider router={router} />
+    <ToastContainer />
+  </React.StrictMode>
+) : (
+  <>
+    <RouterProvider router={router} />
+    <ToastContainer />
+  </>
 );
+
+ReactDOM.createRoot(document.getElementById('root')).render(RootComponent);

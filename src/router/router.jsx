@@ -22,6 +22,9 @@ import PrizeList from '../pages/user/PrizeList';
 import PlayerShowList from '../pages/community/PlayerShowList';
 import PlayerShowDetail from '../pages/community/PlayerShowDetail';
 import PlayerShowCreate from '../pages/community/PlayerShowCreate';
+import CouponCenter from '../pages/coupon/CouponCenter';
+import MyCoupons from '../pages/coupon/MyCoupons';
+import CouponManage from '../pages/coupon/CouponManage';
 
 // 将ProtectedRoute和RedirectIfLoggedIn移到src/router/routerGuards.js
 // 这里只保留router对象的导出
@@ -185,6 +188,30 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['admin']}>
                         <AdminDashboard />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'coupon/center',
+                element: (
+                    <ProtectedRoute>
+                        <CouponCenter />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'coupon/my',
+                element: (
+                    <ProtectedRoute>
+                        <MyCoupons />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'coupon/manage',
+                element: (
+                    <ProtectedRoute allowedRoles={['admin']}>
+                        <CouponManage />
                     </ProtectedRoute>
                 )
             }
