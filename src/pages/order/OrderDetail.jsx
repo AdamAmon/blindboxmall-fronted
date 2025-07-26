@@ -113,6 +113,17 @@ const OrderDetail = () => {
         <div className="mb-2"><span className="font-semibold">收货地址：</span>{order.address?.recipient}，{order.address?.phone}，{order.address?.province}{order.address?.city}{order.address?.district}{order.address?.detail}</div>
         <div className="mb-2"><span className="font-semibold">下单时间：</span>{order.created_at && new Date(order.created_at).toLocaleString()}</div>
         <div className="mb-2"><span className="font-semibold">总价：</span>￥{order.total_amount}</div>
+        {order.discount_amount > 0 && (
+          <div className="mb-2">
+            <span className="font-semibold">优惠券：</span>
+            <span className="text-green-600">-￥{order.discount_amount}</span>
+            {order.user_coupon && (
+              <span className="text-sm text-gray-500 ml-2">
+                （{order.user_coupon.coupon?.name || '优惠券'}）
+              </span>
+            )}
+          </div>
+        )}
       </div>
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-bold mb-4">订单商品</h2>

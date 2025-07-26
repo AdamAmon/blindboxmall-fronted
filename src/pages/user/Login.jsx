@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import reactLogo from '../../assets/react.svg';
+import { triggerUserStateChange } from '../../hooks/useUser';
 
 export default function Login() {
     const [credentials, setCredentials] = useState({
@@ -24,6 +25,9 @@ export default function Login() {
             if (response.data.success === true) {
                 localStorage.setItem('token', response.data.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.data.user));
+                
+                // 触发用户状态变化事件，通知所有组件更新
+                triggerUserStateChange();
                 
                 // 根据用户角色跳转到相应页面
                 const user = response.data.data.user;

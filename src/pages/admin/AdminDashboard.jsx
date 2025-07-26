@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useUser } from '../../hooks/useUser';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -17,7 +18,9 @@ const AdminDashboard = () => {
         totalItems: 0,
         totalSales: 0
     });
-    const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    
+    // 使用自定义 Hook 获取用户信息
+    const user = useUser();
 
     // hooks必须在组件顶层调用
     const fetchBlindBoxes = useCallback(async () => {

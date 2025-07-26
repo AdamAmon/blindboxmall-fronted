@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import AddressManageModal from '../../components/AddressManageModal';
 
 const OrderConfirm = () => {
@@ -11,7 +11,11 @@ const OrderConfirm = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [coupons, setCoupons] = useState([]); // 新增：可用优惠券
+  const [selectedCoupon, setSelectedCoupon] = useState(null); // 新增：选中的优惠券
+  const [discount, setDiscount] = useState(0); // 新增：优惠金额
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
   const fetchCart = useCallback(async () => {
@@ -36,14 +40,58 @@ const OrderConfirm = () => {
     }
   }, [user?.id]);
 
+  // 获取可用优惠券
+  const fetchCoupons = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await axios.get(`/api/user-coupon/available?user_id=${user.id}`);
+      setCoupons(res.data || []);
+      
+      // 从 URL 参数中获取 user_coupon_id 并自动选择
+      const userCouponId = searchParams.get('user_coupon_id');
+      if (userCouponId) {
+        const coupon = res.data.find(c => String(c.id) === userCouponId);
+        if (coupon) {
+          setSelectedCoupon(coupon);
+        }
+      }
+    } catch {
+      setCoupons([]);
+    }
+  }, [user?.id, searchParams]);
+
   useEffect(() => {
     if (!user?.id) {
       navigate('/login', { replace: true });
     } else {
       fetchCart();
       fetchAddressList();
+      fetchCoupons();
     }
-  }, [user?.id, fetchCart, fetchAddressList, navigate]);
+  }, [user?.id, fetchCart, fetchAddressList, fetchCoupons, navigate]);
+
+  // 计算优惠金额
+  useEffect(() => {
+    if (!selectedCoupon) {
+      setDiscount(0);
+      return;
+    }
+    const coupon = selectedCoupon.coupon; // 从嵌套的 coupon 对象中获取优惠券信息
+    const total = cartItems.reduce((sum, item) => sum + (item.quantity * (item.blindBox?.price || 0)), 0);
+    if (coupon.type === 1) {
+      // 满减券
+      if (total >= coupon.threshold) {
+        setDiscount(coupon.amount);
+      } else {
+        setDiscount(0);
+      }
+    } else if (coupon.type === 2) {
+      // 折扣券
+      setDiscount(Number((total * (1 - coupon.amount)).toFixed(2)));
+    } else {
+      setDiscount(0);
+    }
+  }, [selectedCoupon, cartItems]);
 
   const handleSubmit = async () => {
     if (!address) {
@@ -58,7 +106,6 @@ const OrderConfirm = () => {
     setError('');
     try {
       const items = cartItems.map(item => ({ blind_box_id: item.blind_box_id, price: item.blindBox?.price || 0, quantity: item.quantity }));
-      // 后端支持批量下单，需展开items
       const flatItems = [];
       items.forEach(i => {
         for (let j = 0; j < i.quantity; j++) {
@@ -68,23 +115,19 @@ const OrderConfirm = () => {
       const res = await axios.post('/api/pay/order/create', {
         user_id: user.id,
         address_id: address.id,
-        total_amount: flatItems.reduce((sum, i) => sum + i.price, 0),
+        total_amount: flatItems.reduce((sum, i) => sum + i.price, 0) - discount,
         pay_method: payMethod,
-        items: flatItems
+        items: flatItems,
+        user_coupon_id: selectedCoupon ? selectedCoupon.id : undefined
       });
       if (res.data.success) {
-        // 清空购物车
         await axios.post('/api/cart/clear', { user_id: user.id });
         const orderId = res.data.data.order.id;
-        // 下单成功后自动支付
         const payRes = await axios.post('/api/pay/order/pay', { order_id: orderId });
         if (payMethod === 'balance') {
-          // 余额支付直接跳转订单详情
           navigate(`/order/detail/${orderId}`);
         } else if (payMethod === 'alipay' && payRes.data.payUrl) {
-          // 支付宝支付在新标签页打开二维码
           window.open(payRes.data.payUrl, '_blank');
-          // 跳转到订单详情页等待支付
           navigate(`/order/detail/${orderId}`);
         }
       } else {
@@ -98,6 +141,7 @@ const OrderConfirm = () => {
   };
 
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * (item.blindBox?.price || 0)), 0);
+  const finalPrice = Math.max(0, totalPrice - discount);
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
@@ -154,6 +198,32 @@ const OrderConfirm = () => {
             </tbody>
           </table>
 
+          {/* 优惠券选择 */}
+          <div className="mb-6">
+            <span className="font-semibold mr-4">优惠券</span>
+            <select
+              className="border rounded px-3 py-2"
+              value={selectedCoupon ? selectedCoupon.id : ''}
+              onChange={e => {
+                const id = e.target.value;
+                setSelectedCoupon(coupons.find(c => String(c.id) === id) || null);
+              }}
+            >
+              <option value="">不使用优惠券</option>
+              {coupons.map(userCoupon => {
+                const coupon = userCoupon.coupon;
+                return (
+                  <option key={userCoupon.id} value={userCoupon.id}>
+                    {coupon.type === 1 ? `满${coupon.threshold}减${coupon.amount}` : coupon.type === 2 ? `${coupon.amount * 10}折券` : ''}
+                  </option>
+                );
+              })}
+            </select>
+            {selectedCoupon && discount > 0 && (
+              <span className="ml-4 text-green-600">已优惠：￥{discount.toFixed(2)}（{selectedCoupon.coupon.type === 1 ? `满${selectedCoupon.coupon.threshold}减${selectedCoupon.coupon.amount}` : selectedCoupon.coupon.type === 2 ? `${selectedCoupon.coupon.amount * 10}折券` : ''}）</span>
+            )}
+          </div>
+
           {/* 支付方式 */}
           <div className="mb-6">
             <span className="font-semibold mr-4">支付方式</span>
@@ -167,7 +237,7 @@ const OrderConfirm = () => {
 
           {/* 总价与提交 */}
           <div className="flex justify-between items-center mt-4">
-            <div className="text-lg font-bold">总价：￥{totalPrice.toFixed(2)}</div>
+            <div className="text-lg font-bold">总价：￥{finalPrice.toFixed(2)}</div>
             <button
               onClick={handleSubmit}
               disabled={submitting || cartItems.length === 0 || !address}

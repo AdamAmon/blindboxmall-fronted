@@ -66,6 +66,25 @@ export default function Register() {
         }
     };
 
+    const getAvatarDisplay = (avatar, nickname) => {
+      if (avatarError || !avatar) {
+        return (
+          <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center">
+            <span className="text-gray-600 text-2xl font-medium">{nickname?.charAt(0) || 'U'}</span>
+          </div>
+        );
+      }
+      return (
+        <img
+          src={avatar}
+          alt="头像"
+          className="w-20 h-20 rounded-full"
+          onError={() => setAvatarError(true)}
+          onLoad={() => setAvatarError(false)}
+        />
+      );
+    };
+
     return (
         <div className="min-h-screen w-full flex items-center justify-center relative bg-gradient-to-br from-blue-400 via-purple-300 to-blue-200 overflow-hidden">
             <svg className="absolute inset-0 w-full h-full z-0" style={{pointerEvents:'none'}} xmlns="http://www.w3.org/2000/svg">
@@ -112,16 +131,8 @@ export default function Register() {
                         <div>
                             <label htmlFor="avatar" className="block text-gray-700 mb-1">头像URL</label>
                             <input id="avatar" type="text" name="avatar" value={formData.avatar} onChange={handleChange} className="w-full px-3 py-2 border rounded-md text-center" placeholder="https://example.com/avatar.jpg" />
-                            <div className="flex flex-col items-center mt-2">
-                                <img
-                                    src={avatarError || !formData.avatar ? DEFAULT_AVATAR : formData.avatar}
-                                    alt="头像预览"
-                                    className="w-20 h-20 rounded-full border object-cover bg-gray-100"
-                                    onError={() => setAvatarError(true)}
-                                    onLoad={() => setAvatarError(false)}
-                                />
-                                <span className="text-xs text-gray-400 mt-1">头像预览</span>
-                            </div>
+                            {/* 注册表单头像预览 */}
+                            {getAvatarDisplay(formData.avatar, formData.nickname)}
                         </div>
                         <div>
                             <label htmlFor="email" className="block text-gray-700 mb-1">邮箱</label>
