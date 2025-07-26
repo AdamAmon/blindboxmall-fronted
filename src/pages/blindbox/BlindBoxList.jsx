@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import BlindBoxFilter from '../../components/BlindBoxFilter';
+import BlindBoxTabs from '../../components/BlindBoxTabs';
 
 const BlindBoxList = () => {
     const navigate = useNavigate();
@@ -11,6 +13,16 @@ const BlindBoxList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [filterStatus, setFilterStatus] = useState(1); // 1: 上架, 0: 下架
+    const [categoryStats, setCategoryStats] = useState({});
+    // 新增：稀有度Tab
+    const [category, setCategory] = useState('all');
+
+    // 新增：筛选条件state
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [rarity, setRarity] = useState('');
+    const [sortBy, setSortBy] = useState('created_at');
+    const [order, setOrder] = useState('desc');
 
     const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
@@ -31,6 +43,12 @@ const BlindBoxList = () => {
         }
     };
 
+    // 获取热门关键词和分类统计
+    useEffect(() => {
+        axios.get('/api/blindbox/categories').then(res => setCategoryStats(res.data.data));
+    }, []);
+
+    // 修改fetchBlindBoxes，增加多条件参数
     const fetchBlindBoxes = useCallback(async () => {
         try {
             setLoading(true);
@@ -39,7 +57,13 @@ const BlindBoxList = () => {
                     page: currentPage,
                     limit: 12,
                     keyword: searchKeyword,
-                    status: filterStatus
+                    status: filterStatus,
+                    category,
+                    minPrice: minPrice || undefined,
+                    maxPrice: maxPrice || undefined,
+                    rarity: rarity || undefined,
+                    sortBy: sortBy || 'created_at',
+                    order: order || 'desc',
                 }
             });
 
@@ -52,19 +76,32 @@ const BlindBoxList = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, searchKeyword, filterStatus]);
+    }, [currentPage, searchKeyword, filterStatus, category, minPrice, maxPrice, rarity, sortBy, order]);
 
     useEffect(() => {
         fetchBlindBoxes();
     }, [fetchBlindBoxes]);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
+    // 处理Tab切换
+    const handleTabChange = (cat) => {
+        setCategory(cat);
         setCurrentPage(1);
     };
 
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
+    // 处理筛选
+    const handleFilter = (filters) => {
+        setSearchKeyword(filters.keyword || '');
+        setMinPrice(filters.minPrice || '');
+        setMaxPrice(filters.maxPrice || '');
+        setRarity(filters.rarity || '');
+        setFilterStatus(filters.status || 1);
+        setSortBy(filters.sortBy || 'created_at');
+        setOrder(filters.order || 'desc');
+        setCurrentPage(1);
     };
 
     if (loading) {
@@ -87,36 +124,18 @@ const BlindBoxList = () => {
                     <p className="text-gray-600">探索神秘的盲盒世界，发现独特的收藏品</p>
                 </div>
 
-                {/* Search and Filter */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <form onSubmit={handleSearch} className="flex flex-wrap gap-4 items-center">
-                        <div className="flex-1 min-w-64">
-                            <input
-                                type="text"
-                                placeholder="搜索盲盒名称..."
-                                value={searchKeyword}
-                                onChange={(e) => setSearchKeyword(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            />
-                        </div>
-                        
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(Number(e.target.value))}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                            <option value={1}>上架中</option>
-                            <option value={0}>已下架</option>
-                        </select>
-                        
-                        <button
-                            type="submit"
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors"
-                        >
-                            搜索
-                        </button>
-                    </form>
-                </div>
+                {/* 稀有度Tab */}
+                <BlindBoxTabs stats={categoryStats} active={category} onChange={handleTabChange} />
+                {/* 搜索和筛选 */}
+                <BlindBoxFilter onFilter={handleFilter} defaultValues={{
+                    keyword: searchKeyword,
+                    minPrice,
+                    maxPrice,
+                    rarity,
+                    status: filterStatus,
+                    sortBy,
+                    order
+                }} />
 
                 {/* Blind Box Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

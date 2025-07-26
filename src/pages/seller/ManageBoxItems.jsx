@@ -6,6 +6,7 @@ const ManageBoxItems = () => {
     const navigate = useNavigate();
     const { blindBoxId } = useParams();
     const [boxItems, setBoxItems] = useState([]);
+    const [filteredItems, setFilteredItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [blindBox, setBlindBox] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
@@ -16,6 +17,20 @@ const ManageBoxItems = () => {
         image: '',
         rarity: 1,
         probability: 0.5
+    });
+
+    // 防抖搜索相关状态
+    const [filterParams, setFilterParams] = useState({
+        keyword: '',
+        rarity: '',
+        sortBy: 'rarity',
+        order: 'asc'
+    });
+    const [debouncedFilterParams, setDebouncedFilterParams] = useState({
+        keyword: '',
+        rarity: '',
+        sortBy: 'rarity',
+        order: 'asc'
     });
 
     const fetchBlindBox = useCallback(async () => {
@@ -50,6 +65,60 @@ const ManageBoxItems = () => {
             setLoading(false);
         }
     }, [blindBoxId]);
+
+    // 防抖效果
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedFilterParams(filterParams);
+        }, 500); // 500ms 延迟
+
+        return () => clearTimeout(timer);
+    }, [filterParams]);
+
+    // 筛选和排序逻辑
+    useEffect(() => {
+        let filtered = [...boxItems];
+        
+        // 关键词搜索
+        if (debouncedFilterParams.keyword) {
+            filtered = filtered.filter(item => 
+                item.name.toLowerCase().includes(debouncedFilterParams.keyword.toLowerCase())
+            );
+        }
+        
+        // 稀有度筛选
+        if (debouncedFilterParams.rarity) {
+            filtered = filtered.filter(item => item.rarity === parseInt(debouncedFilterParams.rarity));
+        }
+        
+        // 排序
+        filtered.sort((a, b) => {
+            let aValue, bValue;
+            switch (debouncedFilterParams.sortBy) {
+                case 'name':
+                    aValue = a.name;
+                    bValue = b.name;
+                    break;
+                case 'probability':
+                    aValue = a.probability;
+                    bValue = b.probability;
+                    break;
+                case 'rarity':
+                default:
+                    aValue = a.rarity;
+                    bValue = b.rarity;
+                    break;
+            }
+            
+            if (debouncedFilterParams.order === 'asc') {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+        
+        setFilteredItems(filtered);
+    }, [boxItems, debouncedFilterParams]);
 
     useEffect(() => {
         fetchBlindBox();
@@ -140,6 +209,21 @@ const ManageBoxItems = () => {
         }
     };
 
+    const handleSearch = (e) => {
+        e.preventDefault();
+    };
+
+    const handleReset = () => {
+        const resetParams = {
+            keyword: '',
+            rarity: '',
+            sortBy: 'rarity',
+            order: 'asc'
+        };
+        setFilterParams(resetParams);
+        setDebouncedFilterParams(resetParams);
+    };
+
     const getRarityText = (rarity) => {
         switch (rarity) {
             case 1: return '普通';
@@ -228,6 +312,58 @@ const ManageBoxItems = () => {
                     </div>
                 )}
 
+                {/* Search and Filter */}
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <form onSubmit={handleSearch} className="space-y-4">
+                        <div className="flex gap-4">
+                            <input
+                                type="text"
+                                placeholder="搜索商品名称..."
+                                value={filterParams.keyword}
+                                onChange={(e) => setFilterParams({...filterParams, keyword: e.target.value})}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                            <select
+                                value={filterParams.rarity}
+                                onChange={(e) => setFilterParams({...filterParams, rarity: e.target.value})}
+                                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            >
+                                <option value="">全部稀有度</option>
+                                <option value="1">普通</option>
+                                <option value="2">稀有</option>
+                                <option value="3">隐藏</option>
+                            </select>
+                            <select
+                                value={filterParams.sortBy}
+                                onChange={(e) => setFilterParams({...filterParams, sortBy: e.target.value})}
+                                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            >
+                                <option value="rarity">稀有度</option>
+                                <option value="name">名称</option>
+                                <option value="probability">概率</option>
+                            </select>
+                            <select
+                                value={filterParams.order}
+                                onChange={(e) => setFilterParams({...filterParams, order: e.target.value})}
+                                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            >
+                                <option value="asc">升序</option>
+                                <option value="desc">降序</option>
+                            </select>
+                            <button
+                                type="button"
+                                onClick={handleReset}
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors"
+                            >
+                                重置
+                            </button>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                            💡 提示：输入关键词或选择条件后会自动筛选（500ms延迟）
+                        </div>
+                    </form>
+                </div>
+
                 {/* Box Items Table */}
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <div className="overflow-x-auto">
@@ -249,7 +385,7 @@ const ManageBoxItems = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {boxItems.map((item) => (
+                                {filteredItems.map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
@@ -296,7 +432,7 @@ const ManageBoxItems = () => {
                         </table>
                     </div>
 
-                    {boxItems.length === 0 && (
+                    {filteredItems.length === 0 && (
                         <div className="text-center py-12">
                             <div className="text-gray-400 text-6xl mb-4">🎁</div>
                             <h3 className="text-xl font-semibold text-gray-600 mb-2">暂无商品</h3>

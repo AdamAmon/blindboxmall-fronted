@@ -12,6 +12,23 @@ const ManageBlindBoxes = () => {
     const [editingBox, setEditingBox] = useState(null);
     const [editForm, setEditForm] = useState({});
 
+    // 新增筛选条件
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [status, setStatus] = useState('');
+    const [sortBy, setSortBy] = useState('created_at');
+    const [order, setOrder] = useState('desc');
+
+    // 防抖搜索相关状态
+    const [searchParams, setSearchParams] = useState({
+        keyword: '',
+        minPrice: '',
+        maxPrice: '',
+        status: '',
+        sortBy: 'created_at',
+        order: 'desc'
+    });
+
     const fetchBlindBoxes = useCallback(async () => {
         try {
             setLoading(true);
@@ -22,8 +39,13 @@ const ManageBlindBoxes = () => {
                 params: {
                     page: currentPage.toString(),
                     limit: '10',
-                    keyword: searchKeyword,
-                    seller_id: sellerId ? sellerId.toString() : null
+                    keyword: searchParams.keyword,
+                    seller_id: sellerId ? sellerId.toString() : null,
+                    minPrice: searchParams.minPrice || undefined,
+                    maxPrice: searchParams.maxPrice || undefined,
+                    status: searchParams.status || undefined,
+                    sortBy: searchParams.sortBy,
+                    order: searchParams.order
                 },
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -39,7 +61,23 @@ const ManageBlindBoxes = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, searchKeyword]);
+    }, [currentPage, searchParams]);
+
+    // 防抖搜索效果
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearchParams({
+                keyword: searchKeyword,
+                minPrice,
+                maxPrice,
+                status,
+                sortBy,
+                order
+            });
+        }, 500); // 500ms 延迟
+
+        return () => clearTimeout(timer);
+    }, [searchKeyword, minPrice, maxPrice, status, sortBy, order]);
 
     useEffect(() => {
         fetchBlindBoxes();
@@ -48,6 +86,34 @@ const ManageBlindBoxes = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         setCurrentPage(1);
+        // 立即更新搜索参数
+        setSearchParams({
+            keyword: searchKeyword,
+            minPrice,
+            maxPrice,
+            status,
+            sortBy,
+            order
+        });
+    };
+
+    const handleReset = () => {
+        setSearchKeyword('');
+        setMinPrice('');
+        setMaxPrice('');
+        setStatus('');
+        setSortBy('created_at');
+        setOrder('desc');
+        setCurrentPage(1);
+        // 立即重置搜索参数
+        setSearchParams({
+            keyword: '',
+            minPrice: '',
+            maxPrice: '',
+            status: '',
+            sortBy: 'created_at',
+            order: 'desc'
+        });
     };
 
     const handleEdit = (blindBox) => {
@@ -146,22 +212,95 @@ const ManageBlindBoxes = () => {
                     </div>
                 </div>
 
-                {/* Search */}
+                {/* Search and Filter */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <form onSubmit={handleSearch} className="flex gap-4">
-                        <input
-                            type="text"
-                            placeholder="搜索盲盒名称..."
-                            value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        />
-                        <button
-                            type="submit"
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors"
-                        >
-                            搜索
-                        </button>
+                    <form onSubmit={handleSearch} className="space-y-4">
+                        {/* 基础搜索 */}
+                        <div className="flex gap-4">
+                            <input
+                                type="text"
+                                placeholder="搜索盲盒名称..."
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                            <button
+                                type="submit"
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors"
+                            >
+                                立即搜索
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleReset}
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg transition-colors"
+                            >
+                                重置
+                            </button>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                            💡 提示：输入关键词后会自动搜索（500ms延迟），或点击"立即搜索"按钮
+                        </div>
+                        
+                        {/* 高级筛选 */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">最低价格</label>
+                                <input
+                                    type="number"
+                                    placeholder="最低价"
+                                    value={minPrice}
+                                    onChange={(e) => setMinPrice(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">最高价格</label>
+                                <input
+                                    type="number"
+                                    placeholder="最高价"
+                                    value={maxPrice}
+                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                                <select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                    <option value="">全部状态</option>
+                                    <option value="1">上架中</option>
+                                    <option value="0">已下架</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">排序字段</label>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                    <option value="created_at">创建时间</option>
+                                    <option value="price">价格</option>
+                                    <option value="stock">库存</option>
+                                    <option value="name">名称</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">排序方式</label>
+                                <select
+                                    value={order}
+                                    onChange={(e) => setOrder(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                    <option value="desc">降序</option>
+                                    <option value="asc">升序</option>
+                                </select>
+                            </div>
+                        </div>
                     </form>
                 </div>
 
