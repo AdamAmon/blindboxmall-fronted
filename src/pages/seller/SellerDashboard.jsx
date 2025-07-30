@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/axios';
 
 const SellerDashboard = () => {
     const navigate = useNavigate();
@@ -20,7 +20,7 @@ const SellerDashboard = () => {
     const fetchSellerStats = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:7001/api/blindbox/seller/stats', {
+            const response = await api.get('/api/blindbox/seller/stats', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }

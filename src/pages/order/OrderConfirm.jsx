@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../../utils/axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AddressManageModal from '../../components/AddressManageModal';
 
@@ -21,7 +21,7 @@ const OrderConfirm = () => {
   const fetchCart = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/cart/list', { params: { user_id: user.id } });
+      const res = await api.get('/api/cart/list', { params: { user_id: user.id } });
       setCartItems(res.data.data || []);
     } catch {
       setError('获取购物车失败');
@@ -32,7 +32,7 @@ const OrderConfirm = () => {
 
   const fetchAddressList = useCallback(async () => {
     try {
-      const res = await axios.get('/api/address/list', { params: { userId: user.id } });
+      const res = await api.get('/api/address/list', { params: { userId: user.id } });
       const defaultAddr = (res.data.data || []).find(a => a.is_default);
       setAddress(defaultAddr || (res.data.data && res.data.data[0]) || null);
     } catch {
@@ -44,7 +44,7 @@ const OrderConfirm = () => {
   const fetchCoupons = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const res = await axios.get(`/api/user-coupon/available?user_id=${user.id}`);
+      const res = await api.get(`/api/user-coupon/available?user_id=${user.id}`);
       setCoupons(res.data || []);
       
       // 从 URL 参数中获取 user_coupon_id 并自动选择
@@ -112,7 +112,7 @@ const OrderConfirm = () => {
           flatItems.push({ blind_box_id: i.blind_box_id, price: i.price });
         }
       });
-      const res = await axios.post('/api/pay/order/create', {
+      const res = await api.post('/api/pay/order/create', {
         user_id: user.id,
         address_id: address.id,
         total_amount: flatItems.reduce((sum, i) => sum + i.price, 0) - discount,
@@ -121,9 +121,9 @@ const OrderConfirm = () => {
         user_coupon_id: selectedCoupon ? selectedCoupon.id : undefined
       });
       if (res.data.success) {
-        await axios.post('/api/cart/clear', { user_id: user.id });
+        await api.post('/api/cart/clear', { user_id: user.id });
         const orderId = res.data.data.order.id;
-        const payRes = await axios.post('/api/pay/order/pay', { order_id: orderId });
+        const payRes = await api.post('/api/pay/order/pay', { order_id: orderId });
         if (payMethod === 'balance') {
           navigate(`/order/detail/${orderId}`);
         } else if (payMethod === 'alipay' && payRes.data.payUrl) {

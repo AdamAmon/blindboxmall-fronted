@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import api from '../../utils/axios';
 
 const statusMap = {
   pending: '待支付',
@@ -27,7 +27,7 @@ const OrderDetail = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('/api/pay/order/get', { params: { id } });
+      const res = await api.get('/api/pay/order/get', { params: { id } });
       setOrder(res.data.data || null);
     } catch {
       setError('获取订单失败');
@@ -46,7 +46,7 @@ const OrderDetail = () => {
     if (pollingRef.current) clearInterval(pollingRef.current);
     pollingRef.current = setInterval(async () => {
       try {
-        const res = await axios.get('/api/pay/order/get', { params: { id } });
+        const res = await api.get('/api/pay/order/get', { params: { id } });
         if (res.data.data && res.data.data.status !== 'pending') {
           setOrder(res.data.data);
           clearInterval(pollingRef.current);
@@ -62,7 +62,7 @@ const OrderDetail = () => {
     setConfirming(true);
     setError('');
     try {
-      await axios.post('/api/pay/order/confirm', { order_id: id });
+      await api.post('/api/pay/order/confirm', { order_id: id });
       fetchOrder();
     } catch (e) {
       setError(e.response?.data?.message || '确认收货失败');
@@ -79,7 +79,7 @@ const OrderDetail = () => {
     try {
       // 模拟动画
       await new Promise(r => setTimeout(r, 1200));
-      const res = await axios.post('/api/pay/order/open', { order_item_id: orderItemId, user_id: user.id });
+      const res = await api.post('/api/pay/order/open', { order_item_id: orderItemId, user_id: user.id });
       if (res.data.success) {
         setOpenResult(res.data.item);
         fetchOrder();

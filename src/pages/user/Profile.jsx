@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/axios';
 import reactLogo from '../../assets/react.svg';
 import AddressManageModal from '../../components/AddressManageModal';
 import RechargeModal from '../../components/RechargeModal';
@@ -97,7 +97,7 @@ function EditUserModal({ user, open, onClose, onSave }) {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('/api/user/update', {
+      const res = await api.post('/api/user/update', {
         id: user.id,
         ...form
       });
@@ -194,7 +194,7 @@ export default function Profile() {
   // 补充 handleSaveUser
   const handleSaveUser = async (newUser) => {
     try {
-      const res = await axios.get('/api/user/get', { params: { id: newUser.id } });
+      const res = await api.get('/api/user/get', { params: { id: newUser.id } });
       const freshUser = res.data.data;
       setUser(freshUser);
       localStorage.setItem('user', JSON.stringify(freshUser));
@@ -206,7 +206,7 @@ export default function Profile() {
 
   const fetchDefaultAddress = useCallback(async (userId) => {
     try {
-      const res = await axios.get('/api/address/list', { params: { userId } });
+      const res = await api.get('/api/address/list', { params: { userId } });
       const list = res.data.data || [];
       setDefaultAddress(list.find(addr => addr.is_default) || null);
     } catch {
@@ -216,7 +216,7 @@ export default function Profile() {
 
   const fetchRechargeRecords = useCallback(async (uid) => {
     try {
-      const res = await axios.get('/api/pay/records', { params: { userId: uid } });
+      const res = await api.get('/api/pay/records', { params: { userId: uid } });
       setRechargeRecords(res.data.data || []);
     } catch {
       setRechargeRecords([]);
@@ -245,7 +245,7 @@ export default function Profile() {
       navigate('/login');
       return;
     }
-    axios.get('/api/user/get', { params: { id: userId } })
+    api.get('/api/user/get', { params: { id: userId } })
       .then(res => {
         setUser(res.data.data);
         localStorage.setItem('user', JSON.stringify(res.data.data));
@@ -260,7 +260,7 @@ export default function Profile() {
   // 查询余额（用户信息）
   const fetchUser = async (uid) => {
     try {
-      const res = await axios.get('/api/user/get', { params: { id: uid } });
+      const res = await api.get('/api/user/get', { params: { id: uid } });
       setUser(res.data.data);
       localStorage.setItem('user', JSON.stringify(res.data.data));
     } catch {
@@ -283,7 +283,7 @@ export default function Profile() {
           // console.log(`[调试] 第${checkCount}次检查余额更新`);
           
           // 获取最新用户信息
-          const res = await axios.get('/api/user/get', { params: { id: user.id } });
+          const res = await api.get('/api/user/get', { params: { id: user.id } });
           const latestUser = res.data.data;
           
           // 如果余额有变化，说明支付成功
@@ -329,7 +329,7 @@ export default function Profile() {
   // 充值处理
   const handleRecharge = async (amount) => {
     if (!user) return;
-    const res = await axios.post('/api/pay/recharge', { userId: user.id, amount });
+    const res = await api.post('/api/pay/recharge', { userId: user.id, amount });
     if (res.data.success && res.data.payUrl) {
       // 判断payUrl是form还是URL
       if (res.data.payUrl.trim().startsWith('<form')) {

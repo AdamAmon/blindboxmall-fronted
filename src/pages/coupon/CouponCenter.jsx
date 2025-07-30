@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../utils/axios';
 import { useNavigate } from 'react-router-dom';
 
 const CouponCenter = () => {
@@ -16,7 +16,7 @@ const CouponCenter = () => {
       setUser(JSON.parse(userInfo));
     }
     // 获取可领取优惠券列表
-    axios.get('/api/coupon').then(res => {
+    api.get('/api/coupon').then(res => {
       setCoupons(res.data);
       setLoading(false);
     });
@@ -29,7 +29,7 @@ const CouponCenter = () => {
       return;
     }
     try {
-      await axios.post('/api/user-coupon/receive?user_id=' + user.id, { coupon_id: couponId });
+      await api.post('/api/user-coupon/receive?user_id=' + user.id, { coupon_id: couponId });
       setMessage('领取成功！');
     } catch (e) {
       setMessage(e.response?.data?.message || '领取失败');

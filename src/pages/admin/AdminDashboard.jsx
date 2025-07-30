@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/axios';
+import { toast } from 'react-toastify';
 import { useUser } from '../../hooks/useUser';
 
 const AdminDashboard = () => {
@@ -26,7 +27,7 @@ const AdminDashboard = () => {
     const fetchBlindBoxes = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:7001/api/blindbox', {
+            const response = await api.get('/api/blindbox', {
                 params: {
                     page: currentPage,
                     limit: 10,
@@ -50,7 +51,7 @@ const AdminDashboard = () => {
 
     const fetchStats = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:7001/api/blindbox', {
+            const response = await api.get('/api/blindbox', {
                 params: { limit: 1000 },
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -113,21 +114,21 @@ const AdminDashboard = () => {
 
     const handleUpdate = async () => {
         try {
-            const response = await axios.put(`http://localhost:7001/api/blindbox/${editingBox.id}`, editForm, {
+            const response = await api.put(`/api/blindbox/${editingBox.id}`, editForm, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
             if (response.data.code === 200) {
-                alert('更新成功！');
+                toast.success('更新成功！');
                 setEditingBox(null);
                 fetchBlindBoxes();
                 fetchStats();
             }
         } catch (error) {
             console.error('更新失败:', error);
-            alert(error.response?.data?.message || '更新失败，请重试');
+            toast.error(error.response?.data?.message || '更新失败，请重试');
         }
     };
 
@@ -137,20 +138,20 @@ const AdminDashboard = () => {
         }
 
         try {
-            const response = await axios.delete(`http://localhost:7001/api/blindbox/${id}`, {
+            const response = await api.delete(`/api/blindbox/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
             if (response.data.code === 200) {
-                alert('删除成功！');
+                toast.success('删除成功！');
                 fetchBlindBoxes();
                 fetchStats();
             }
         } catch (error) {
             console.error('删除失败:', error);
-            alert(error.response?.data?.message || '删除失败，请重试');
+            toast.error(error.response?.data?.message || '删除失败，请重试');
         }
     };
 

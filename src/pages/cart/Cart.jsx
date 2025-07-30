@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../../utils/axios';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -16,7 +16,7 @@ const Cart = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('/api/cart/list', { params: { user_id: user.id } });
+      const res = await api.get('/api/cart/list', { params: { user_id: user.id } });
       setCartItems(res.data.data || []);
       // 初始化数量映射
       const map = {};
@@ -59,7 +59,7 @@ const Cart = () => {
     if (quantity < 1) return;
     setUpdating(true);
     try {
-      await axios.post('/api/cart/update', { cart_id: cartId, quantity });
+      await api.post('/api/cart/update', { cart_id: cartId, quantity });
       fetchCart();
     } catch {
       setError('更新数量失败');
@@ -71,7 +71,7 @@ const Cart = () => {
   const handleDelete = async (cartId) => {
     setUpdating(true);
     try {
-      await axios.post('/api/cart/delete', { cart_id: cartId });
+      await api.post('/api/cart/delete', { cart_id: cartId });
       fetchCart();
     } catch {
       setError('删除失败');
@@ -83,7 +83,7 @@ const Cart = () => {
   const handleClear = async () => {
     setUpdating(true);
     try {
-      await axios.post('/api/cart/clear', { user_id: user.id });
+      await api.post('/api/cart/clear', { user_id: user.id });
       fetchCart();
     } catch {
       setError('清空失败');

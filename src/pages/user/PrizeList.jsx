@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../utils/axios';
 import { useNavigate } from 'react-router-dom';
 
 const rarityTabs = [
@@ -37,7 +37,7 @@ const PrizeList = () => {
     }
     setLoading(true);
     setError('');
-    axios.get('/api/user/prizes', {
+    api.get('/api/user/prizes', {
       params: {
         user_id: user.id,
         rarity: activeRarity,

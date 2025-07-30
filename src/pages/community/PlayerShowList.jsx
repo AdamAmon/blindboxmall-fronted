@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../../utils/axios';
 
 const PlayerShowList = () => {
   const [shows, setShows] = useState([]);
@@ -15,7 +15,7 @@ const PlayerShowList = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('/api/community/show/list', { params: { page: pageNum, pageSize } });
+      const res = await api.get('/api/community/show/list', { params: { page: pageNum, pageSize } });
       if (res.data.success) {
         setShows(res.data.data.list);
         setTotal(res.data.data.total);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/axios';
+import { toast } from 'react-toastify';
 
 const CreateBoxItem = () => {
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ const CreateBoxItem = () => {
 
     const fetchBlindBoxes = async () => {
         try {
-            const response = await axios.get('http://localhost:7001/api/blindbox', {
+            const response = await api.get('/api/blindbox', {
                 params: { limit: 100 },
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -83,7 +84,7 @@ const CreateBoxItem = () => {
 
         try {
             setLoading(true);
-            const response = await axios.post('http://localhost:7001/api/blindbox/items', {
+            const response = await api.post('/api/blindbox/items', {
                 ...formData,
                 blind_box_id: parseInt(formData.blind_box_id),
                 rarity: parseInt(formData.rarity),
@@ -95,7 +96,7 @@ const CreateBoxItem = () => {
             });
 
             if (response.data.code === 200) {
-                alert('商品添加成功！');
+                toast.success('商品添加成功！');
                 // 重置表单
                 setFormData({
                     blind_box_id: formData.blind_box_id, // 保持当前盲盒选择
@@ -107,7 +108,7 @@ const CreateBoxItem = () => {
             }
         } catch (error) {
             console.error('添加商品失败:', error);
-            alert(error.response?.data?.message || '添加失败，请重试');
+            toast.error(error.response?.data?.message || '添加失败，请重试');
         } finally {
             setLoading(false);
         }

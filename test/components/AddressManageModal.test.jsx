@@ -1,5 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import AddressManageModal from '../../src/components/AddressManageModal';
+import { vi } from 'vitest';
+
+// 模拟 react-toastify
+vi.mock('react-toastify', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
 
 describe('AddressManageModal', () => {
   it('弹窗打开时渲染内容', () => {
