@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../../utils/axios';
+import { toast } from 'react-toastify';
 
 const DEFAULT_AVATAR = 'https://avatars.githubusercontent.com/u/583231?v=4'; // 可换为其他默认头像
 
@@ -42,7 +43,7 @@ export default function Register() {
         }
         setIsSubmitting(true);
         try {
-            const response = await axios.post('/api/auth/register', {
+            const response = await api.post('/api/auth/register', {
                 username: formData.username,
                 password: formData.password,
                 nickname: formData.nickname,
@@ -52,7 +53,7 @@ export default function Register() {
                 role: formData.role
             });
             if (response.data.success) {
-                alert('注册成功，请登录！');
+                toast.success('注册成功，请登录！');
                 navigate('/login');
             } else {
                 setError(response.data.message || '注册失败，请重试');

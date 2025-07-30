@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../utils/axios';
 import { useNavigate } from 'react-router-dom';
 
 const MyCoupons = () => {
@@ -16,7 +16,7 @@ const MyCoupons = () => {
       return;
     }
     const userObj = JSON.parse(userInfo);
-    axios.get(`/api/user-coupon/list?user_id=${userObj.id}`).then(res => {
+    api.get(`/api/user-coupon/list?user_id=${userObj.id}`).then(res => {
       setCoupons(res.data);
       setLoading(false);
     });

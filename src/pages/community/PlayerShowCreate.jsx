@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import api from '../../utils/axios';
 
 const PlayerShowCreate = () => {
   const [prizes, setPrizes] = useState([]);
@@ -16,7 +16,7 @@ const PlayerShowCreate = () => {
   // 获取我的奖品
   const fetchPrizes = useCallback(async () => {
     try {
-      const res = await axios.get('/api/pay/order/completed', { params: { user_id: user.id } });
+      const res = await api.get('/api/pay/order/completed', { params: { user_id: user.id } });
       // 聚合所有已开盒奖品
       const allPrizes = [];
       (res.data || []).forEach(orderObj => {
@@ -77,7 +77,7 @@ const PlayerShowCreate = () => {
     setSubmitting(true);
     setError('');
     try {
-      const res = await axios.post('/api/community/show/create', {
+      const res = await api.post('/api/community/show/create', {
         user_id: user.id,
         item_id: selectedPrize.id,
         order_item_id: selectedPrize.order_item_id,

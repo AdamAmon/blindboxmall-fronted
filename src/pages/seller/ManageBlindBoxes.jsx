@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/axios';
+import { toast } from 'react-toastify';
 
 const ManageBlindBoxes = () => {
     const navigate = useNavigate();
@@ -35,7 +36,7 @@ const ManageBlindBoxes = () => {
             const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
             const sellerId = user ? user.id : null;
             
-            const response = await axios.get('http://localhost:7001/api/blindbox', {
+            const response = await api.get('/api/blindbox', {
                 params: {
                     page: currentPage.toString(),
                     limit: '10',
@@ -130,20 +131,20 @@ const ManageBlindBoxes = () => {
 
     const handleUpdate = async () => {
         try {
-            const response = await axios.put(`http://localhost:7001/api/blindbox/${editingBox.id}`, editForm, {
+            const response = await api.put(`/api/blindbox/${editingBox.id}`, editForm, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
             if (response.data.code === 200) {
-                alert('更新成功！');
+                toast.success('更新成功！');
                 setEditingBox(null);
                 fetchBlindBoxes();
             }
         } catch (error) {
             console.error('更新失败:', error);
-            alert(error.response?.data?.message || '更新失败，请重试');
+            toast.error(error.response?.data?.message || '更新失败，请重试');
         }
     };
 
@@ -153,19 +154,19 @@ const ManageBlindBoxes = () => {
         }
 
         try {
-            const response = await axios.delete(`http://localhost:7001/api/blindbox/${id}`, {
+            const response = await api.delete(`/api/blindbox/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
             if (response.data.code === 200) {
-                alert('删除成功！');
+                toast.success('删除成功！');
                 fetchBlindBoxes();
             }
         } catch (error) {
             console.error('删除失败:', error);
-            alert(error.response?.data?.message || '删除失败，请重试');
+            toast.error(error.response?.data?.message || '删除失败，请重试');
         }
     };
 

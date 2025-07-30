@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../../utils/axios';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
 
@@ -22,7 +22,7 @@ const CouponManage = () => {
 
   const fetchCoupons = useCallback(() => {
     setLoading(true);
-    axios.get('/api/coupon', { params: { page, pageSize: PAGE_SIZE, type: tab } }).then(res => {
+    api.get('/api/coupon', { params: { page, pageSize: PAGE_SIZE, type: tab } }).then(res => {
       setCoupons(res.data.data);
       setTotal(res.data.total);
       setLoading(false);
@@ -30,7 +30,7 @@ const CouponManage = () => {
   }, [page, tab]);
 
   const fetchStats = useCallback(() => {
-    axios.get('/api/user-coupon/stats').then(res => {
+    api.get('/api/user-coupon/stats').then(res => {
       setStats(res.data.data);
     });
   }, []);
@@ -52,7 +52,7 @@ const CouponManage = () => {
 
   const handleCreate = async (formData) => {
     try {
-      await axios.post('/api/coupon', formData);
+      await api.post('/api/coupon', formData);
       setMessage('创建成功！');
       setShowForm(false);
       fetchCoupons();
@@ -63,7 +63,7 @@ const CouponManage = () => {
 
   const handleUpdate = async (formData) => {
     try {
-      await axios.put('/api/coupon', formData);
+      await api.put('/api/coupon', formData);
       setMessage('更新成功！');
       setShowForm(false);
       setEditingCoupon(null);
@@ -76,7 +76,7 @@ const CouponManage = () => {
   const handleDelete = async (id) => {
     if (!confirm('确定要删除这个优惠券吗？')) return;
     try {
-      await axios.delete(`/api/coupon?id=${id}`);
+      await api.delete(`/api/coupon?id=${id}`);
       setMessage('删除成功！');
       fetchCoupons();
     } catch (e) {
@@ -87,7 +87,7 @@ const CouponManage = () => {
   const handleCleanExpired = async () => {
     if (!window.confirm('此操作仅清除用户已领取的失效优惠券，不会影响平台优惠券本身。\n确定要清理所有过期的用户优惠券吗？此操作不可恢复。')) return;
     try {
-      const res = await axios.post('/api/user-coupon/clean-expired');
+      const res = await api.post('/api/user-coupon/clean-expired');
       setMessage(res.data.message || '清理成功！');
       fetchStats(); // 刷新统计信息
     } catch (e) {

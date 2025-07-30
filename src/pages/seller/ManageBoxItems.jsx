@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/axios';
+import { toast } from 'react-toastify';
 
 const ManageBoxItems = () => {
     const navigate = useNavigate();
@@ -35,7 +36,7 @@ const ManageBoxItems = () => {
 
     const fetchBlindBox = useCallback(async () => {
         try {
-            const response = await axios.get(`http://localhost:7001/api/blindbox/${blindBoxId}`, {
+            const response = await api.get(`/api/blindbox/${blindBoxId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -51,7 +52,7 @@ const ManageBoxItems = () => {
     const fetchBoxItems = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`http://localhost:7001/api/blindbox/${blindBoxId}/items`, {
+            const response = await api.get(`/api/blindbox/${blindBoxId}/items`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -127,7 +128,7 @@ const ManageBoxItems = () => {
 
     const handleCreateItem = async () => {
         try {
-            const response = await axios.post('http://localhost:7001/api/blindbox/items', {
+            const response = await api.post('/api/blindbox/items', {
                 ...createForm,
                 blind_box_id: parseInt(blindBoxId)
             }, {
@@ -138,7 +139,7 @@ const ManageBoxItems = () => {
             });
 
             if (response.data.code === 200) {
-                alert('创建成功！');
+                toast.success('创建成功！');
                 setShowCreateForm(false);
                 setCreateForm({
                     name: '',
@@ -150,7 +151,7 @@ const ManageBoxItems = () => {
             }
         } catch (error) {
             console.error('创建失败:', error);
-            alert(error.response?.data?.message || '创建失败，请重试');
+            toast.error(error.response?.data?.message || '创建失败，请重试');
         }
     };
 
@@ -166,8 +167,8 @@ const ManageBoxItems = () => {
 
     const handleUpdate = async () => {
         try {
-            const response = await axios.put(
-                `http://localhost:7001/api/blindbox/items/${editingItem.id}`,
+            const response = await api.put(
+                `/api/blindbox/items/${editingItem.id}`,
                 { ...editForm, id: editingItem.id }, // 确保包含id字段
                 {
                     headers: {
@@ -177,13 +178,13 @@ const ManageBoxItems = () => {
                 }
             );
             if (response.data.code === 200) {
-                alert('更新成功！');
+                toast.success('更新成功！');
                 setEditingItem(null);
                 fetchBoxItems();
             }
         } catch (error) {
             console.error('更新失败:', error);
-            alert(error.response?.data?.message || '更新失败，请重试');
+            toast.error(error.response?.data?.message || '更新失败，请重试');
         }
     };
 
@@ -193,19 +194,19 @@ const ManageBoxItems = () => {
         }
 
         try {
-            const response = await axios.delete(`http://localhost:7001/api/blindbox/items/${id}`, {
+            const response = await api.delete(`/api/blindbox/items/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
             if (response.data.code === 200) {
-                alert('删除成功！');
+                toast.success('删除成功！');
                 fetchBoxItems();
             }
         } catch (error) {
             console.error('删除失败:', error);
-            alert(error.response?.data?.message || '删除失败，请重试');
+            toast.error(error.response?.data?.message || '删除失败，请重试');
         }
     };
 

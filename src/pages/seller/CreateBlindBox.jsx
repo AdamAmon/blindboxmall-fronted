@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/axios';
 
 const CreateBlindBox = () => {
     const navigate = useNavigate();
@@ -73,7 +73,7 @@ const CreateBlindBox = () => {
                 return;
             }
 
-            const response = await axios.post('http://localhost:7001/api/blindbox', {
+            const response = await api.post('/api/blindbox', {
                 ...formData,
                 price: parseFloat(formData.price),
                 stock: parseInt(formData.stock),

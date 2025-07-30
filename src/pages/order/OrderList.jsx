@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../../utils/axios';
 
 const statusMap = {
   pending: '待支付',
@@ -22,7 +22,7 @@ const OrderList = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('/api/pay/order/list', { params: { user_id: user.id } });
+      const res = await api.get('/api/pay/order/list', { params: { user_id: user.id } });
       setOrders(res.data.data || []);
     } catch {
       setError('获取订单失败');

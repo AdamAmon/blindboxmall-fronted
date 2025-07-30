@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../../utils/axios';
 import { useParams } from 'react-router-dom';
 
 // 轮播组件
@@ -47,7 +47,7 @@ const PlayerShowDetail = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('/api/community/show/detail', { params: { id } });
+      const res = await api.get('/api/community/show/detail', { params: { id } });
       if (res.data.success) {
         setShow(res.data.data);
       } else {
@@ -62,7 +62,7 @@ const PlayerShowDetail = () => {
 
   const fetchComments = useCallback(async () => {
     try {
-      const res = await axios.get('/api/community/show/comments', { params: { show_id: id } });
+      const res = await api.get('/api/community/show/comments', { params: { show_id: id } });
       if (res.data.success) {
         setComments(res.data.data);
       }
@@ -81,7 +81,7 @@ const PlayerShowDetail = () => {
     if (!commentContent.trim()) return;
     setSubmitting(true);
     try {
-      const res = await axios.post('/api/community/show/comment', {
+      const res = await api.post('/api/community/show/comment', {
         show_id: id,
         user_id: user.id,
         content: commentContent,

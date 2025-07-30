@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/axios';
 
 export default function AddressManageModal({ userId, open, onClose, onSelectDefault }) {
   const [list, setList] = useState([]);
@@ -12,7 +12,7 @@ export default function AddressManageModal({ userId, open, onClose, onSelectDefa
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/address/list', { params: { userId } });
+      const res = await api.get('/api/address/list', { params: { userId } });
       setList(res.data.data || []);
     } catch {
       setError('获取地址失败');
@@ -37,18 +37,18 @@ export default function AddressManageModal({ userId, open, onClose, onSelectDefa
   };
   const handleDelete = async (id) => {
     if (!window.confirm('确定删除该地址吗？')) return;
-    await axios.post(`/api/address/delete?userId=${userId}`, { id });
+    await api.post(`/api/address/delete?userId=${userId}`, { id });
     fetchList();
   };
   const handleSetDefault = async (id) => {
-    await axios.post(`/api/address/set_default?userId=${userId}`, { id });
+    await api.post(`/api/address/set_default?userId=${userId}`, { id });
     fetchList();
     if (onSelectDefault) onSelectDefault();
   };
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (formMode === 'add') {
-      await axios.post(`/api/address/create?userId=${userId}`, {
+      await api.post(`/api/address/create?userId=${userId}`, {
         recipient: form.recipient,
         phone: form.phone,
         province: form.province,
@@ -58,7 +58,7 @@ export default function AddressManageModal({ userId, open, onClose, onSelectDefa
         is_default: form.is_default
       });
     } else {
-      await axios.post(`/api/address/update?userId=${userId}`, {
+      await api.post(`/api/address/update?userId=${userId}`, {
         id: editItem.id,
         recipient: form.recipient,
         phone: form.phone,
