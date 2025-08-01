@@ -440,72 +440,114 @@ const AdminDashboard = () => {
 
                 {/* 编辑模态框 */}
                 {editingBox && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">编辑盲盒</h3>
-                            <div className="space-y-4">
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            {/* 背景装饰 */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 rounded-3xl"></div>
+                            
+                            {/* 头部 */}
+                            <div className="relative z-10 flex items-center justify-between mb-6">
+                                <h3 className="text-2xl font-bold text-gray-800 font-brand flex items-center">
+                                    <svg className="w-6 h-6 mr-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    编辑盲盒
+                                </h3>
+                                <button
+                                    onClick={() => setEditingBox(null)}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            {/* 表单内容 */}
+                            <div className="relative z-10 space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">名称</label>
+                                    <label className="block text-lg font-semibold text-gray-800 mb-3 font-brand">盲盒名称</label>
                                     <input
                                         type="text"
                                         value={editForm.name}
                                         onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 focus:outline-none"
+                                        className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300 bg-white/80 backdrop-blur-sm"
+                                        placeholder="请输入盲盒名称"
                                     />
                                 </div>
+                                
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">描述</label>
+                                    <label className="block text-lg font-semibold text-gray-800 mb-3 font-brand">描述</label>
                                     <textarea
                                         value={editForm.description}
                                         onChange={(e) => setEditForm({...editForm, description: e.target.value})}
                                         rows={3}
-                                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 focus:outline-none"
+                                        className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg resize-none hover:border-gray-300 bg-white/80 backdrop-blur-sm"
+                                        placeholder="请输入盲盒描述"
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                
+                                <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">价格</label>
-                                        <input
-                                            type="number"
-                                            value={editForm.price}
-                                            onChange={(e) => setEditForm({...editForm, price: parseFloat(e.target.value)})}
-                                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 focus:outline-none"
-                                        />
+                                        <label className="block text-lg font-semibold text-gray-800 mb-3 font-brand">价格</label>
+                                        <div className="relative">
+                                            <span className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg font-bold">¥</span>
+                                            <input
+                                                type="number"
+                                                value={editForm.price}
+                                                onChange={(e) => setEditForm({...editForm, price: parseFloat(e.target.value) || 0})}
+                                                step="0.01"
+                                                min="0"
+                                                className="w-full pl-12 pr-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300 bg-white/80 backdrop-blur-sm"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
                                     </div>
+                                    
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">库存</label>
+                                        <label className="block text-lg font-semibold text-gray-800 mb-3 font-brand">库存</label>
                                         <input
                                             type="number"
                                             value={editForm.stock}
-                                            onChange={(e) => setEditForm({...editForm, stock: parseInt(e.target.value)})}
-                                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 focus:outline-none"
+                                            onChange={(e) => setEditForm({...editForm, stock: parseInt(e.target.value) || 0})}
+                                            min="0"
+                                            className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300 bg-white/80 backdrop-blur-sm"
+                                            placeholder="0"
                                         />
                                     </div>
                                 </div>
+                                
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                                    <label className="block text-lg font-semibold text-gray-800 mb-3 font-brand">状态</label>
                                     <select
                                         value={editForm.status}
                                         onChange={(e) => setEditForm({...editForm, status: parseInt(e.target.value)})}
-                                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 focus:outline-none"
+                                        className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300 bg-white/80 backdrop-blur-sm"
                                     >
-                                        <option value={1}>上架</option>
-                                        <option value={0}>下架</option>
+                                        <option value={1}>🚀 上架</option>
+                                        <option value={0}>⏸️ 下架</option>
                                     </select>
                                 </div>
                             </div>
-                            <div className="flex space-x-3 mt-6">
-                                <button
-                                    onClick={handleUpdate}
-                                    className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white py-2 px-4 rounded-xl font-bold transition-all duration-200"
-                                >
-                                    保存
-                                </button>
+                            
+                            {/* 操作按钮 */}
+                            <div className="relative z-10 flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
                                 <button
                                     onClick={() => setEditingBox(null)}
-                                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-xl font-bold transition-all duration-200"
+                                    className="px-8 py-4 border-2 border-gray-300 rounded-2xl text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 font-semibold text-lg"
                                 >
                                     取消
+                                </button>
+                                <button
+                                    onClick={handleUpdate}
+                                    className="px-8 py-4 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-2xl font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-btn"
+                                >
+                                    <span className="flex items-center">
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        保存
+                                    </span>
                                 </button>
                             </div>
                         </div>
