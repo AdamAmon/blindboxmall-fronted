@@ -649,7 +649,7 @@ const BlindBoxDetail = () => {
                                                 <div key={comment.id} className="bg-white rounded-2xl border border-gray-200 p-6 hover:bg-gray-50 transition-colors shadow-sm">
                                                     <div className="flex gap-3">
                                                         {/* 用户头像 */}
-                                                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-black font-bold text-sm flex-shrink-0">
                                                             {comment.user?.nickname?.charAt(0) || 'U'}
                                                         </div>
                                                         
@@ -709,7 +709,7 @@ const BlindBoxDetail = () => {
                                                                         </button>
                                                                     </div>
                                                                     <div className="flex gap-3">
-                                                                        <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                                                        <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-black font-bold text-xs flex-shrink-0">
                                                                             {user.nickname?.charAt(0) || 'U'}
                                                                         </div>
                                                                         <div className="flex-1">
@@ -748,7 +748,7 @@ const BlindBoxDetail = () => {
                                                                     {comment.replies.map((reply) => (
                                                                         <div key={reply.id} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 ml-4">
                                                                             <div className="flex gap-3">
-                                                                                <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                                                                <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-black font-bold text-xs flex-shrink-0">
                                                                                     {reply.user?.nickname?.charAt(0) || 'U'}
                                                                                 </div>
                                                                                 <div className="flex-1">

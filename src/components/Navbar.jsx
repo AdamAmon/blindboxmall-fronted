@@ -41,7 +41,6 @@ const Navbar = () => {
             case 'admin':
                 return [
                     { name: '管理员面板', path: '/admin', icon: '🔒' },
-                    { name: '盲盒管理', path: '/seller', icon: '📦' },
                     { name: '优惠券管理', path: '/coupon/manage', icon: '🎫' },
                     { name: '浏览盲盒', path: '/blindboxes', icon: '🎲' },
                     { name: '玩家秀', path: '/shows', icon: '🌟' },
