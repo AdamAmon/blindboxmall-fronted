@@ -114,12 +114,12 @@ function EditUserModal({ user, open, onClose, onSave }) {
     }
   };
 
-  // 在 EditUserModal 内部定义 getAvatarDisplay
+  // 优化头像预览
   const getAvatarDisplay = (avatar, nickname) => {
     if (avatarError || !avatar) {
       return (
-        <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center">
-          <span className="text-gray-600 text-2xl font-medium">{nickname?.charAt(0) || 'U'}</span>
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-bold text-2xl">
+          {nickname?.charAt(0) || 'U'}
         </div>
       );
     }
@@ -127,7 +127,7 @@ function EditUserModal({ user, open, onClose, onSave }) {
       <img
         src={avatar}
         alt="头像"
-        className="w-20 h-20 rounded-full"
+        className="w-20 h-20 rounded-full object-cover border-2 border-purple-200 shadow"
         onError={() => setAvatarError(true)}
         onLoad={() => setAvatarError(false)}
       />
@@ -137,34 +137,34 @@ function EditUserModal({ user, open, onClose, onSave }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-[360px] relative">
+      <div className="bg-white/95 rounded-3xl shadow-2xl p-8 w-[380px] relative border border-white/30">
         <button className="absolute right-4 top-4 text-gray-400 hover:text-gray-600" onClick={onClose}>
           <span className="material-icons">close</span>
         </button>
-        <h3 className="text-xl font-bold mb-4 text-center">编辑个人信息</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">编辑个人信息</h3>
         {error && <div className="mb-2 p-2 bg-red-100 text-red-700 rounded text-sm text-center">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 mb-1">昵称</label>
-            <input name="nickname" value={form.nickname} onChange={handleChange} className="w-full px-3 py-2 border rounded-md text-center" required />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="flex flex-col items-center mb-2">
+            {getAvatarDisplay(form.avatar, form.nickname)}
           </div>
           <div>
-            <label className="block text-gray-700 mb-1">邮箱</label>
-            <input name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border rounded-md text-center" type="email" />
+            <label className="block text-gray-700 mb-1 font-medium">昵称</label>
+            <input name="nickname" value={form.nickname} onChange={handleChange} className="w-full px-3 py-2 border-2 rounded-xl text-center focus:outline-none focus:ring-2 focus:ring-purple-400" required />
           </div>
           <div>
-            <label className="block text-gray-700 mb-1">手机号</label>
-            <input name="phone" value={form.phone} onChange={handleChange} className="w-full px-3 py-2 border rounded-md text-center" type="tel" />
+            <label className="block text-gray-700 mb-1 font-medium">邮箱</label>
+            <input name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border-2 rounded-xl text-center focus:outline-none focus:ring-2 focus:ring-purple-400" type="email" />
           </div>
           <div>
-            <label className="block text-gray-700 mb-1">头像URL</label>
-            <input name="avatar" value={form.avatar} onChange={handleChange} className="w-full px-3 py-2 border rounded-md text-center" type="text" />
-            <div className="flex flex-col items-center mt-2">
-              {/* 编辑表单头像预览 */}
-              {getAvatarDisplay(form.avatar, form.nickname)}
-            </div>
+            <label className="block text-gray-700 mb-1 font-medium">手机号</label>
+            <input name="phone" value={form.phone} onChange={handleChange} className="w-full px-3 py-2 border-2 rounded-xl text-center focus:outline-none focus:ring-2 focus:ring-purple-400" type="tel" />
           </div>
-          <button type="submit" disabled={loading} className={`w-full py-2 rounded-md font-semibold text-lg ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}>{loading ? '保存中...' : '保存'}</button>
+          <div>
+            <label className="block text-gray-700 mb-1 font-medium">头像URL</label>
+            <input name="avatar" value={form.avatar} onChange={handleChange} className="w-full px-3 py-2 border-2 rounded-xl text-center focus:outline-none focus:ring-2 focus:ring-purple-400" type="text" />
+            <p className="text-xs text-gray-400 mt-1">留空将使用默认头像</p>
+          </div>
+          <button type="submit" disabled={loading} className={`w-full py-3 rounded-xl font-semibold text-lg transition-all duration-200 ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl'}`}>{loading ? '保存中...' : '保存'}</button>
         </form>
       </div>
     </div>
@@ -180,7 +180,6 @@ export default function Profile() {
   const [rechargeRecords, setRechargeRecords] = useState([]);
   const [rechargeSuccess, setRechargeSuccess] = useState(false);
   const [showRechargeRecords, setShowRechargeRecords] = useState(false);
-  const [avatarError, setAvatarError] = useState(false); // 新增
   const pollingRef = useRef(null);
   const navigate = useNavigate();
 
@@ -348,190 +347,150 @@ export default function Profile() {
   };
 
   // Profile 组件中保留自己的 getAvatarDisplay 和 setAvatarError
-  const getAvatarDisplay = (avatar, nickname) => {
-    if (avatarError || !avatar) {
-      return (
-        <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center">
-          <span className="text-gray-600 text-2xl font-medium">{nickname?.charAt(0) || 'U'}</span>
-        </div>
-      );
-    }
-    return (
-      <img
-        src={avatar}
-        alt="头像"
-        className="w-20 h-20 rounded-full"
-        onError={() => setAvatarError(true)}
-        onLoad={() => setAvatarError(false)}
-      />
-    );
-  };
-
   if (!user) return null;
   return (
-    <div>
-      <div className="min-h-screen w-full bg-gradient-to-br from-blue-400 via-purple-300 to-blue-200 flex flex-col">
-        <div className="flex-1 flex flex-col md:flex-row items-start justify-center px-4 py-10 relative">
-          {/* 左侧欢迎区+操作区 */}
-          <div className="w-full md:w-80 flex-shrink-0 flex flex-col items-center md:items-start md:mr-12">
-            <div className="flex flex-col items-center mt-6 mb-4 w-full">
-              {/* 个人信息卡片头像展示 */}
-              {getAvatarDisplay(user.avatar, user.nickname)}
-              <span className="absolute bottom-0 right-0 bg-green-500 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center">
-                <span className="material-icons text-white text-base">check_circle</span>
-              </span>
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
+      {/* 顶部品牌+个人信息区 - 减少空白 */}
+      <div className="flex flex-col items-center justify-center pt-6 pb-6">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full shadow-xl mb-3 border-4 border-white">
+          <img src={user.avatar || reactLogo} alt="头像" className="w-12 h-12 rounded-full object-cover" />
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col md:flex-row items-start justify-center px-4 py-6 max-w-5xl mx-auto w-full">
+        <div className="w-full md:w-96 flex-shrink-0 flex flex-col items-center md:items-start md:mr-12">
+          {/* 余额和充值 */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-8 w-full flex flex-col items-center mb-8">
+            <div className="text-lg font-semibold text-green-700 flex items-center mb-2">
+              <span className="material-icons mr-1">account_balance_wallet</span>
+              余额：￥{user.balance?.toFixed(2) ?? '0.00'}
             </div>
-            <div className="text-2xl font-bold mt-2 text-gray-800 flex items-center">
-              {user.nickname}
-              <span className="ml-2 px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-xs font-semibold">
-                {user.role === 'customer' ? '顾客' : user.role === 'seller' ? '商家' : '管理员'}
-              </span>
-            </div>
-            <div className="text-gray-500 text-sm">{user.username}</div>
-            <div className="text-gray-500 text-sm mt-1">欢迎使用盲盒商城</div>
-            {/* 余额展示和充值按钮 */}
-            <div className="mt-4 w-full flex flex-col items-center">
-              <div className="text-lg font-semibold text-green-700 flex items-center">
-                <span className="material-icons mr-1">account_balance_wallet</span>
-                余额：￥{user.balance?.toFixed(2) ?? '0.00'}
-              </div>
-              <button
-                className="mt-2 px-4 py-2 bg-gradient-to-r from-green-400 to-green-600 text-white rounded shadow hover:from-green-500 hover:to-green-700 transition font-bold"
-                onClick={() => setShowRecharge(true)}
-              >
-                <span className="material-icons mr-1 align-middle">add_circle</span>余额充值
-              </button>
-            </div>
-            <div className="w-full grid grid-cols-2 gap-4 mt-6 mb-8">
-              <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-blue-50 transition" onClick={() => setShowAddress(true)}>
-                <span className="material-icons text-blue-500 text-2xl mb-1">location_on</span>
-                <span className="text-sm font-semibold text-gray-700">地址管理</span>
-              </button>
-              <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-red-50 transition" onClick={handleLogout}>
-                <span className="material-icons text-red-500 text-2xl mb-1">logout</span>
-                <span className="text-sm font-semibold text-gray-700">退出登录</span>
-              </button>
-            </div>
-            {/* 新增“秀奖品”入口 */}
-            <div className="w-full grid grid-cols-1 gap-4 mb-8">
-              <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-pink-50 transition" onClick={() => navigate('/shows/create')}>
-                <span className="material-icons text-pink-500 text-2xl mb-1">star</span>
-                <span className="text-sm font-semibold text-gray-700">秀奖品</span>
-              </button>
-            </div>
-            {/* 新增快捷入口 */}
-            <div className="w-full grid grid-cols-2 gap-4 mb-8">
-              <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-purple-50 transition" onClick={() => navigate('/order/list')}>
-                <span className="material-icons text-purple-500 text-2xl mb-1">list_alt</span>
-                <span className="text-sm font-semibold text-gray-700">我的订单</span>
-              </button>
-              <button className="flex flex-col items-center p-4 bg-white rounded-xl shadow hover:bg-yellow-50 transition" onClick={() => navigate('/prizes')}>
-                <span className="material-icons text-yellow-500 text-2xl mb-1">emoji_events</span>
-                <span className="text-sm font-semibold text-gray-700">我的奖品</span>
-              </button>
-            </div>
-            {/* 充值记录展示 */}
-            <div className="w-full mt-8 bg-white rounded-xl shadow p-4">
-              <div className="flex justify-between items-center mb-2">
-                <div className="font-bold text-lg flex items-center">
-                  <span className="material-icons text-green-500 mr-1">history</span>充值记录
-                </div>
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={() => {
-                      fetchRechargeRecords(user.id);
-                      fetchUser(user.id);
-                    }}
-                    className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                  >
-                    <span className="material-icons text-base mr-1">refresh</span>
-                    刷新
-                  </button>
-                  <button 
-                    onClick={() => setShowRechargeRecords(!showRechargeRecords)}
-                    className="text-green-600 hover:text-green-800 text-sm flex items-center"
-                  >
-                    <span className="material-icons text-base mr-1">
-                      {showRechargeRecords ? 'visibility_off' : 'visibility'}
-                    </span>
-                    {showRechargeRecords ? '隐藏' : '查看'}
-                  </button>
-                </div>
-              </div>
-              {showRechargeRecords ? (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-gray-500">
-                      <th className="py-1">时间</th>
-                      <th className="py-1">金额</th>
-                      <th className="py-1">状态</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rechargeRecords.length === 0 && <tr><td colSpan={3} className="text-center text-gray-400 py-2">暂无记录</td></tr>}
-                    {rechargeRecords.map(r => (
-                      <tr key={r.recharge_id}>
-                        <td className="py-1">{new Date(r.created_at).toLocaleString()}</td>
-                        <td className="py-1 text-green-700 font-semibold">￥{Number(r.recharge_amount).toFixed(2)}</td>
-                        <td className="py-1">{r.recharge_status === 'success' ? <span className="text-green-600">成功</span> : r.recharge_status === 'pending' ? <span className="text-yellow-600">待支付</span> : <span className="text-red-600">失败</span>}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="text-center text-gray-400 py-4">
-                  点击"查看"按钮查看充值历史
-                </div>
-              )}
-            </div>
+            <button
+              className="mt-2 px-4 py-2 bg-gradient-to-r from-green-400 to-green-600 text-white rounded shadow hover:from-green-500 hover:to-green-700 transition font-bold"
+              onClick={() => setShowRecharge(true)}
+            >
+              <span className="material-icons mr-1 align-middle">add_circle</span>余额充值
+            </button>
           </div>
-          {/* 右侧信息卡片 */}
-          <div className="flex-1 flex flex-col items-center mt-8 md:mt-0">
-            <div className="bg-white rounded-xl shadow p-8 w-full max-w-2xl">
-              <div className="flex justify-between items-center mb-4">
-                <div className="font-bold text-xl flex items-center">
-                  <span className="material-icons text-blue-500 mr-1">person</span>个人信息
-                </div>
-                <button className="text-blue-600 hover:underline text-sm flex items-center" onClick={() => setShowEdit(true)}>
-                  <span className="material-icons text-base mr-1">edit</span> 编辑信息
-                </button>
+          {/* 快捷操作 - 删除重复的地址管理按钮 */}
+          <div className="w-full grid grid-cols-2 gap-4 mb-4">
+            <button className="flex flex-col items-center p-4 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl shadow hover:scale-105 hover:shadow-lg transition" onClick={() => navigate('/order/list')}>
+              <span className="material-icons text-purple-500 text-3xl mb-1">list_alt</span>
+              <span className="text-sm font-semibold text-gray-700">我的订单</span>
+            </button>
+            <button className="flex flex-col items-center p-4 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl shadow hover:scale-105 hover:shadow-lg transition" onClick={() => navigate('/prizes')}>
+              <span className="material-icons text-yellow-500 text-3xl mb-1">emoji_events</span>
+              <span className="text-sm font-semibold text-gray-700">我的奖品</span>
+            </button>
+          </div>
+          <div className="w-full grid grid-cols-2 gap-4 mb-4">
+            <button className="flex flex-col items-center p-4 bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl shadow hover:scale-105 hover:shadow-lg transition" onClick={() => navigate('/shows/create')}>
+              <span className="material-icons text-pink-500 text-3xl mb-1">star</span>
+              <span className="text-sm font-semibold text-gray-700">秀奖品</span>
+            </button>
+            <button className="flex flex-col items-center p-4 bg-gradient-to-br from-red-100 to-pink-100 rounded-xl shadow hover:scale-105 hover:shadow-lg transition" onClick={handleLogout}>
+              <span className="material-icons text-red-500 text-3xl mb-1">logout</span>
+              <span className="text-sm font-semibold text-gray-700">退出登录</span>
+            </button>
+          </div>
+        </div>
+        {/* 详细信息卡片 - 将编辑按钮移入卡片，删除重复信息 */}
+        <div className="flex-1 flex flex-col items-center mt-8 md:mt-0">
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-8 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <div className="font-bold text-xl flex items-center">
+                <span className="material-icons text-blue-500 mr-1">person</span>个人信息
               </div>
-              <table className="w-full text-left text-gray-700">
-                <tbody>
-                  <tr>
-                    <td className="py-2 font-medium w-24">昵称</td>
-                    <td>{user.nickname || <span className="text-gray-400">未填写</span>}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 font-medium">用户名</td>
-                    <td>{user.username || <span className="text-gray-400">未填写</span>}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 font-medium">邮箱</td>
-                    <td>{user.email || <span className="text-gray-400">未填写</span>}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 font-medium">手机号</td>
-                    <td>{user.phone || <span className="text-gray-400">未填写</span>}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 font-medium">角色</td>
-                    <td>{user.role === 'customer' ? '顾客' : user.role === 'seller' ? '商家' : '管理员'}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 font-medium">默认收货地址</td>
-                    <td>{defaultAddress ? (
+              <button className="text-blue-600 hover:underline text-sm flex items-center" onClick={() => setShowEdit(true)}>
+                <span className="material-icons text-base mr-1">edit</span> 编辑信息
+              </button>
+            </div>
+            <table className="w-full text-left text-gray-700 divide-y divide-gray-100">
+              <tbody>
+                <tr>
+                  <td className="py-2 font-medium w-24">用户名</td>
+                  <td>{user.username || <span className="text-gray-400">未填写</span>}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">邮箱</td>
+                  <td>{user.email || <span className="text-gray-400">未填写</span>}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">手机号</td>
+                  <td>{user.phone || <span className="text-gray-400">未填写</span>}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">角色</td>
+                  <td>{user.role === 'customer' ? '顾客' : user.role === 'seller' ? '商家' : '管理员'}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 font-medium">默认收货地址</td>
+                  <td>
+                    {defaultAddress ? (
                       <span>{defaultAddress.recipient}，{defaultAddress.phone}，{defaultAddress.province}{defaultAddress.city}{defaultAddress.district}{defaultAddress.detail}</span>
                     ) : <span className="text-gray-400">未设置</span>}
-                      <button className="ml-2 text-blue-600 hover:underline text-xs" onClick={() => setShowAddress(true)}>管理</button>
-                    </td>
+                    <button className="ml-2 text-blue-600 hover:underline text-xs" onClick={() => setShowAddress(true)}>管理</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          {/* 充值记录展示 */}
+          <div className="w-full bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-6 mt-8">
+            <div className="flex justify-between items-center mb-2">
+              <div className="font-bold text-lg flex items-center">
+                <span className="material-icons text-green-500 mr-1">history</span>充值记录
+              </div>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={() => {
+                    fetchRechargeRecords(user.id);
+                    fetchUser(user.id);
+                  }}
+                  className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                >
+                  <span className="material-icons text-base mr-1">refresh</span>
+                  刷新
+                </button>
+                <button 
+                  onClick={() => setShowRechargeRecords(!showRechargeRecords)}
+                  className="text-green-600 hover:text-green-800 text-sm flex items-center"
+                >
+                  <span className="material-icons text-base mr-1">
+                    {showRechargeRecords ? 'visibility_off' : 'visibility'}
+                  </span>
+                  {showRechargeRecords ? '隐藏' : '查看'}
+                </button>
+              </div>
+            </div>
+            {showRechargeRecords ? (
+              <table className="w-full text-sm divide-y divide-gray-100">
+                <thead>
+                  <tr className="text-gray-500">
+                    <th className="py-1">时间</th>
+                    <th className="py-1">金额</th>
+                    <th className="py-1">状态</th>
                   </tr>
+                </thead>
+                <tbody>
+                  {rechargeRecords.length === 0 && <tr><td colSpan={3} className="text-center text-gray-400 py-2">暂无记录</td></tr>}
+                  {rechargeRecords.map(r => (
+                    <tr key={r.recharge_id} className="hover:bg-green-50 transition">
+                      <td className="py-1">{new Date(r.created_at).toLocaleString()}</td>
+                      <td className="py-1 text-green-700 font-semibold">￥{Number(r.recharge_amount).toFixed(2)}</td>
+                      <td className="py-1">{r.recharge_status === 'success' ? <span className="text-green-600">成功</span> : r.recharge_status === 'pending' ? <span className="text-yellow-600">待支付</span> : <span className="text-red-600">失败</span>}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-            </div>
+            ) : (
+              <div className="text-center text-gray-400 py-4">
+                点击"查看"按钮查看充值历史
+              </div>
+            )}
           </div>
         </div>
       </div>
+      {/* 弹窗区 */}
       <EditUserModal user={user} open={showEdit} onClose={() => setShowEdit(false)} onSave={handleSaveUser} />
       <AddressManageModal userId={user.id} open={showAddress} onClose={() => { setShowAddress(false); fetchDefaultAddress(user.id); }} onSelectDefault={() => fetchDefaultAddress(user.id)} />
       <RechargeModal open={showRecharge} onClose={() => setShowRecharge(false)} onRecharge={handleRecharge} />

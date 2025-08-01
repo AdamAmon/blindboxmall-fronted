@@ -366,7 +366,6 @@ const BlindBoxDetail = () => {
                             {/* 标题和描述 */}
                             <div className="mb-8">
                                 <h1 className="text-4xl font-bold text-gray-800 mb-4">{blindBox.name}</h1>
-                                <p className="text-lg text-gray-600 leading-relaxed">{blindBox.description || '暂无描述'}</p>
                             </div>
 
                             {/* 统计信息 */}
@@ -399,15 +398,38 @@ const BlindBoxDetail = () => {
                                     <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
                                         <div className="flex items-center gap-3">
                                             <label className="text-gray-700 font-medium">数量:</label>
-                                            <select
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setDrawQuantity(Math.max(1, drawQuantity - 1))}
+                                                    className="w-8 h-8 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center hover:border-green-500 transition-colors"
+                                                >
+                                                    -
+                                                </button>
+                                                <input
+                                                    type="number"
                                                 value={drawQuantity}
-                                                onChange={(e) => setDrawQuantity(Number(e.target.value))}
-                                                className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-200 bg-white/70 backdrop-blur-sm font-medium"
-                                            >
-                                                {[1, 2, 3, 4, 5].map(num => (
-                                                    <option key={num} value={num}>{num}</option>
-                                                ))}
-                                            </select>
+                                                    onChange={(e) => {
+                                                        const value = parseInt(e.target.value) || 1;
+                                                        const maxStock = Math.min(blindBox.stock, 99); // 限制最大99个
+                                                        setDrawQuantity(Math.max(1, Math.min(value, maxStock)));
+                                                    }}
+                                                    min="1"
+                                                    max={Math.min(blindBox.stock, 99)}
+                                                    className="w-16 h-8 text-center border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70 backdrop-blur-sm font-medium"
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        const maxStock = Math.min(blindBox.stock, 99);
+                                                        setDrawQuantity(Math.min(maxStock, drawQuantity + 1));
+                                                    }}
+                                                    className="w-8 h-8 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center hover:border-green-500 transition-colors"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                            <span className="text-sm text-gray-500">
+                                                库存: {blindBox.stock} 个
+                                            </span>
                                         </div>
                                         <div className="text-lg font-bold text-green-600">
                                             总价: ¥{(blindBox.price * drawQuantity).toFixed(2)}
@@ -472,6 +494,13 @@ const BlindBoxDetail = () => {
                             {/* 标签页内容 */}
                             {selectedTab === 'info' && (
                                 <div className="space-y-4">
+                                    {/* 盲盒描述 */}
+                                    <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                                        <div className="text-sm text-gray-500 mb-2 font-medium">盲盒介绍</div>
+                                        <div className="text-gray-700 leading-relaxed">{blindBox.description || '暂无描述'}</div>
+                                    </div>
+                                    
+                                    {/* 基本信息 */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="p-4 bg-gray-50 rounded-xl">
                                             <div className="text-sm text-gray-500 mb-1">创建时间</div>
@@ -523,7 +552,7 @@ const BlindBoxDetail = () => {
                                     {/* 评论数量统计 */}
                                     <div className="flex items-center justify-between py-4 border-b border-gray-200">
                                         <div className="flex items-center gap-3">
-                                            <span className="text-lg font-bold text-gray-800">评论</span>
+                                            <span className="text-lg font-bold text-gray-800 font-brand">评论</span>
                                             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                                                 {commentTotal} 条
                                             </span>
@@ -536,17 +565,17 @@ const BlindBoxDetail = () => {
                                         )}
                                     </div>
 
-                                    {/* 发布评论区域 - B站风格 */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    {/* 发布评论区域 */}
+                                    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                                         {!user ? (
                                             <div className="text-center py-8">
-                                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                                                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
                                                     🔒
                                                 </div>
-                                                <p className="text-gray-600 mb-4">请先登录后再发表评论</p>
+                                                <p className="text-gray-600 mb-4 font-brand">请先登录后再发表评论</p>
                                                 <button
                                                     onClick={() => navigate('/login')}
-                                                    className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                                                    className="px-6 py-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-xl font-bold transition-all duration-200 transform hover:scale-105 shadow-btn"
                                                 >
                                                     立即登录
                                                 </button>
@@ -554,7 +583,7 @@ const BlindBoxDetail = () => {
                                         ) : (
                                             <div className="flex gap-4">
                                                 {/* 用户头像 */}
-                                                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                                                     {user.nickname?.charAt(0) || 'U'}
                                                 </div>
                                                 
@@ -565,7 +594,7 @@ const BlindBoxDetail = () => {
                                                             value={newComment}
                                                             onChange={(e) => setNewComment(e.target.value)}
                                                             placeholder="发一条友善的评论"
-                                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none font-brand text-left"
                                                             rows="3"
                                                             maxLength={500}
                                                         />
@@ -581,7 +610,7 @@ const BlindBoxDetail = () => {
                                                         <button
                                                             onClick={handleSubmitComment}
                                                             disabled={!newComment.trim() || commentLoading}
-                                                            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed flex items-center gap-2"
+                                                            className="px-6 py-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 disabled:bg-gray-300 text-white rounded-xl font-bold transition-all duration-200 transform hover:scale-105 shadow-btn disabled:cursor-not-allowed flex items-center gap-2"
                                                         >
                                                             {commentLoading ? (
                                                                 <>
@@ -601,48 +630,48 @@ const BlindBoxDetail = () => {
                                         )}
                                     </div>
 
-                                    {/* 评论列表 - B站风格 */}
+                                    {/* 评论列表 */}
                                     {commentLoading ? (
                                         <div className="text-center py-12">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent mx-auto"></div>
-                                            <p className="mt-4 text-gray-600">加载评论中...</p>
+                                            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto"></div>
+                                            <p className="mt-4 text-gray-600 font-brand">加载评论中...</p>
                                         </div>
                                     ) : comments.length === 0 ? (
                                         <div className="text-center py-12">
-                                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                                            <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
                                                 💭
                                             </div>
-                                            <p className="text-gray-600">暂无评论，快来发表第一条评论吧！</p>
+                                            <p className="text-gray-600 font-brand">暂无评论，快来发表第一条评论吧！</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
                                             {comments.map((comment, index) => (
-                                                <div key={comment.id} className="bg-white rounded-lg border border-gray-200 p-4 hover:bg-gray-50 transition-colors">
+                                                <div key={comment.id} className="bg-white rounded-2xl border border-gray-200 p-6 hover:bg-gray-50 transition-colors shadow-sm">
                                                     <div className="flex gap-3">
                                                         {/* 用户头像 */}
-                                                        <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                                                             {comment.user?.nickname?.charAt(0) || 'U'}
                                                         </div>
                                                         
                                                         <div className="flex-1 min-w-0">
                                                             {/* 用户信息和时间 */}
                                                             <div className="flex items-center gap-2 mb-2">
-                                                                <span className="font-medium text-gray-800">
+                                                                <span className="font-bold text-gray-800 font-brand">
                                                                     {comment.user?.nickname || '匿名用户'}
                                                                 </span>
                                                                 <span className="text-xs text-gray-500">
                                                                     {new Date(comment.created_at).toLocaleString()}
                                                                 </span>
                                                                 {index === 0 && (
-                                                                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">
+                                                                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
                                                                         沙发
                                                                     </span>
                                                                 )}
                                                             </div>
                                                             
-                                                            {/* 评论内容 */}
-                                                            <div className="mb-3">
-                                                                <p className="text-gray-700 leading-relaxed">
+                                                            {/* 评论内容 - 确保左对齐 */}
+                                                            <div className="mb-3 text-left">
+                                                                <p className="text-gray-700 leading-relaxed font-brand text-left">
                                                                     {comment.content}
                                                                 </p>
                                                             </div>
@@ -651,14 +680,14 @@ const BlindBoxDetail = () => {
                                                             <div className="flex items-center gap-6 text-sm text-gray-500">
                                                                 <button 
                                                                     onClick={() => handleLikeComment(comment.id)}
-                                                                    className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                                                                    className="flex items-center gap-1 hover:text-primary transition-colors"
                                                                 >
                                                                     <span>👍</span>
                                                                     <span>{comment.like_count || 0}</span>
                                                                 </button>
                                                                 <button 
                                                                     onClick={() => setReplyTo(comment)}
-                                                                    className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                                                                    className="flex items-center gap-1 hover:text-primary transition-colors"
                                                                 >
                                                                     <span>💬</span>
                                                                     <span>回复</span>
@@ -667,9 +696,9 @@ const BlindBoxDetail = () => {
 
                                                             {/* 回复表单 */}
                                                             {replyTo?.id === comment.id && (
-                                                                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                                                                <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl">
                                                                     <div className="flex items-center justify-between mb-3">
-                                                                        <span className="text-sm text-gray-600">
+                                                                        <span className="text-sm text-gray-600 font-brand">
                                                                             回复 @{comment.user?.nickname || '匿名用户'}
                                                                         </span>
                                                                         <button 
@@ -680,7 +709,7 @@ const BlindBoxDetail = () => {
                                                                         </button>
                                                                     </div>
                                                                     <div className="flex gap-3">
-                                                                        <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                                                        <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                                                                             {user.nickname?.charAt(0) || 'U'}
                                                                         </div>
                                                                         <div className="flex-1">
@@ -688,7 +717,7 @@ const BlindBoxDetail = () => {
                                                                                 value={replyContent}
                                                                                 onChange={(e) => setReplyContent(e.target.value)}
                                                                                 placeholder="写下你的回复..."
-                                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+                                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none text-sm font-brand text-left"
                                                                                 rows="2"
                                                                                 maxLength={200}
                                                                             />
@@ -699,7 +728,7 @@ const BlindBoxDetail = () => {
                                                                                 <button
                                                                                     onClick={() => handleReplyComment(comment)}
                                                                                     disabled={!replyContent.trim()}
-                                                                                    className="px-4 py-1 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded text-sm transition-colors"
+                                                                                    className="px-4 py-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 disabled:bg-gray-300 text-white rounded-lg text-sm font-bold transition-all duration-200 transform hover:scale-105 shadow-btn"
                                                                                 >
                                                                                     发送回复
                                                                                 </button>
@@ -717,21 +746,21 @@ const BlindBoxDetail = () => {
                                                                         <span className="text-xs text-gray-500">回复 ({comment.replies.length})</span>
                                                                     </div>
                                                                     {comment.replies.map((reply) => (
-                                                                        <div key={reply.id} className="bg-gray-50 rounded-lg p-3 ml-4">
+                                                                        <div key={reply.id} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 ml-4">
                                                                             <div className="flex gap-3">
-                                                                                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                                                                <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                                                                                     {reply.user?.nickname?.charAt(0) || 'U'}
                                                                                 </div>
                                                                                 <div className="flex-1">
                                                                                     <div className="flex items-center gap-2 mb-1">
-                                                                                        <span className="font-medium text-sm text-gray-800">
+                                                                                        <span className="font-bold text-sm text-gray-800 font-brand">
                                                                                             {reply.user?.nickname || '匿名用户'}
                                                                                         </span>
                                                                                         <span className="text-xs text-gray-500">
                                                                                             {new Date(reply.created_at).toLocaleString()}
                                                                                         </span>
                                                                                     </div>
-                                                                                    <p className="text-sm text-gray-700">{reply.content}</p>
+                                                                                    <p className="text-sm text-gray-700 font-brand text-left">{reply.content}</p>
                                                                                 </div>
                                                                             </div>
                                                                         </div>

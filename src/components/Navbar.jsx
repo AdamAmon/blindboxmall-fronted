@@ -75,22 +75,18 @@ const Navbar = () => {
 
     // 获取头像显示内容
     const getAvatarDisplay = () => {
-        if (avatarError || !user?.avatar) {
-            // 显示默认头像图标
+        if (avatarError || !user.avatar) {
             return (
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="text-gray-600 text-sm font-medium">
-                        {user?.nickname?.charAt(0) || 'U'}
-                    </span>
+                <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    {user.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}
                 </div>
             );
         }
-        
         return (
             <img
                 src={user.avatar}
-                alt="头像"
-                className="w-8 h-8 rounded-full"
+                alt="用户头像"
+                className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm"
                 onError={handleAvatarError}
             />
         );
@@ -99,22 +95,22 @@ const Navbar = () => {
     // 未登录时显示品牌、登录、注册按钮
     if (!user || !token) {
         return (
-            <nav className="bg-white shadow-lg border-b" data-testid="navbar">
+            <nav className="bg-gradient-to-r from-primary to-secondary shadow-lg sticky top-0 z-50" data-testid="navbar">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
                     <div className="flex items-center">
-                        <span className="text-2xl mr-2">🎁</span>
-                        <span className="text-xl font-bold text-gray-800">盲盒商城</span>
+                        <span className="text-3xl mr-3">🎁</span>
+                        <span className="text-xl font-bold text-black font-brand drop-shadow-lg">盲盒商城</span>
                     </div>
-                    <div>
+                    <div className="flex space-x-3">
                         <button
                             onClick={() => navigate('/login')}
-                            className="mr-2 px-4 py-2 bg-purple-600 text-white rounded"
+                            className="px-6 py-2 bg-white text-primary rounded-full font-bold shadow-btn hover:shadow-lg transition-all duration-200 hover:scale-105"
                         >
                             登录
                         </button>
                         <button
                             onClick={() => navigate('/register')}
-                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded"
+                            className="px-6 py-2 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white hover:text-primary transition-all duration-200 hover:scale-105"
                         >
                             注册
                         </button>
@@ -125,30 +121,30 @@ const Navbar = () => {
     }
 
     return (
-        <nav className="bg-white shadow-lg border-b" data-testid="navbar">
+        <nav className="bg-gradient-to-r from-primary to-secondary shadow-lg sticky top-0 z-50" data-testid="navbar">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     {/* Logo and Brand */}
                     <div className="flex items-center">
                         <div className="flex-shrink-0 flex items-center">
-                            <span className="text-2xl mr-2">🎁</span>
-                            <span className="text-xl font-bold text-gray-800">盲盒商城</span>
+                            <span className="text-3xl mr-3">🎁</span>
+                            <span className="text-xl font-bold text-gray-800 font-brand drop-shadow-lg">盲盒商城</span>
                         </div>
                     </div>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center space-x-4">
+                    <div className="hidden md:flex items-center space-x-2">
                         {navItems.map((item) => (
                             <button
                                 key={item.path}
                                 onClick={() => navigate(item.path)}
-                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${
                                     location.pathname === item.path
-                                        ? 'bg-purple-100 text-purple-700'
-                                        : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                                        ? 'bg-white text-primary shadow-lg scale-105'
+                                        : 'text-white hover:bg-white hover:text-primary hover:shadow-lg hover:scale-105'
                                 }`}
                             >
-                                <span className="mr-1">{item.icon}</span>
+                                <span className="mr-2">{item.icon}</span>
                                 {item.name}
                             </button>
                         ))}
@@ -157,19 +153,21 @@ const Navbar = () => {
                     {/* User Menu */}
                     <div className="flex items-center space-x-4">
                         {/* User Info */}
-                        <div className="hidden md:flex items-center space-x-2">
+                        <div className="hidden md:flex items-center space-x-3">
                             {getAvatarDisplay()}
-                            <span className="text-sm text-gray-700">{user.nickname}</span>
-                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                {user.role === 'admin' ? '管理员' : 
-                                 user.role === 'seller' ? '商家' : '顾客'}
-                            </span>
+                            <div className="text-gray-800">
+                                <div className="text-sm font-bold">{user.nickname}</div>
+                                <div className="text-xs opacity-90">
+                                    {user.role === 'admin' ? '管理员' : 
+                                     user.role === 'seller' ? '商家' : '顾客'}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Logout Button */}
                         <button
                             onClick={handleLogout}
-                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-btn hover:shadow-lg transition-all duration-200 hover:scale-105"
                         >
                             退出登录
                         </button>
@@ -178,7 +176,7 @@ const Navbar = () => {
                         <div className="md:hidden">
                             <button
                                 onClick={handleMenuToggle}
-                                className="text-gray-600 hover:text-gray-900 focus:outline-none focus:text-gray-900"
+                                className="text-white hover:text-gray-200 focus:outline-none p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-all duration-200"
                             >
                                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -191,26 +189,26 @@ const Navbar = () => {
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
                     <div className="md:hidden">
-                        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 rounded-lg mt-2">
+                        <div className="px-4 pt-4 pb-6 space-y-2 bg-white rounded-t-3xl shadow-card mt-2">
                             {navItems.map((item) => (
                                 <button
                                     key={item.path}
                                     onClick={() => handleNavigation(item.path)}
-                                    className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                                    className={`block w-full text-left px-4 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
                                         location.pathname === item.path
-                                            ? 'bg-purple-100 text-purple-700'
-                                            : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                                            ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
+                                            : 'text-gray-700 hover:bg-gray-100 hover:scale-105'
                                     }`}
                                 >
-                                    <span className="mr-2">{item.icon}</span>
+                                    <span className="mr-3">{item.icon}</span>
                                     {item.name}
                                 </button>
                             ))}
-                            <div className="border-t pt-2 mt-2">
-                                <div className="flex items-center px-3 py-2">
+                            <div className="border-t border-gray-200 pt-4 mt-4">
+                                <div className="flex items-center px-4 py-3">
                                     {getAvatarDisplay()}
-                                    <div className="flex-1 ml-2">
-                                        <div className="text-sm font-medium text-gray-700">{user.nickname}</div>
+                                    <div className="flex-1 ml-3">
+                                        <div className="text-sm font-bold text-gray-700">{user.nickname}</div>
                                         <div className="text-xs text-gray-500">
                                             {user.role === 'admin' ? '管理员' : 
                                              user.role === 'seller' ? '商家' : '顾客'}
