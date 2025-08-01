@@ -106,18 +106,43 @@ const PlayerShowDetail = () => {
 
     try {
       const response = await api.post('/api/community/show/comment/like', {
-        comment_id: commentId,
-        user_id: user.id
+        comment_id: commentId
       });
 
       if (response.data.success) {
         const result = response.data.data;
-        if (result.liked) {
-          toast.success('点赞成功');
-        } else {
-          toast.success('取消点赞');
-        }
-        fetchShowDetail(); // 重新获取数据
+        // 直接更新本地状态
+        setShow(prevShow => {
+          if (!prevShow || !prevShow.comments) return prevShow;
+          
+          const updateCommentLikeCount = (comments) => {
+            return comments.map(comment => {
+              if (comment.id === commentId) {
+                return {
+                  ...comment,
+                  like_count: result.liked 
+                    ? (comment.like_count || 0) + 1 
+                    : Math.max(0, (comment.like_count || 0) - 1)
+                };
+              }
+              // 递归更新子评论
+              if (comment.children && comment.children.length > 0) {
+                return {
+                  ...comment,
+                  children: updateCommentLikeCount(comment.children)
+                };
+              }
+              return comment;
+            });
+          };
+          
+          return {
+            ...prevShow,
+            comments: updateCommentLikeCount(prevShow.comments)
+          };
+        });
+        
+        toast.success(result.liked ? '点赞成功' : '取消点赞成功');
       } else {
         toast.error(response.data.message || '操作失败');
       }
