@@ -7,6 +7,7 @@ import Profile from '../pages/user/Profile';
 import BlindBoxList from '../pages/blindbox/BlindBoxList';
 import BlindBoxDetail from '../pages/blindbox/BlindBoxDetail';
 import SellerDashboard from '../pages/seller/SellerDashboard';
+import SellerStats from '../pages/seller/SellerStats';
 import CreateBlindBox from '../pages/seller/CreateBlindBox';
 import ManageBlindBoxes from '../pages/seller/ManageBlindBoxes';
 import ManageBoxItems from '../pages/seller/ManageBoxItems';
@@ -147,6 +148,14 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['seller', 'admin']}>
                         <SellerDashboard />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'seller/stats',
+                element: (
+                    <ProtectedRoute allowedRoles={['seller', 'admin']}>
+                        <SellerStats />
                     </ProtectedRoute>
                 )
             },

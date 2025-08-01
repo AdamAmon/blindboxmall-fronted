@@ -17,7 +17,7 @@ const CouponCenter = () => {
     }
     // 获取可领取优惠券列表
     api.get('/api/coupon').then(res => {
-      setCoupons(res.data);
+      setCoupons(Array.isArray(res.data) ? res.data : []);
       setLoading(false);
     });
   }, []);
@@ -43,8 +43,8 @@ const CouponCenter = () => {
       <h2 className="text-xl font-bold mb-4">优惠券中心</h2>
       {message && <div className="mb-2 text-green-600">{message}</div>}
       <div className="space-y-4">
-        {coupons.length === 0 && <div>暂无可领取优惠券</div>}
-        {coupons.map(coupon => (
+        {(!Array.isArray(coupons) || coupons.length === 0) && <div>暂无可领取优惠券</div>}
+        {Array.isArray(coupons) && coupons.map(coupon => (
           <div key={coupon.id} className="border rounded p-4 flex justify-between items-center">
             <div>
               <div className="font-semibold">{coupon.name}</div>

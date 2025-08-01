@@ -229,7 +229,7 @@ const ManageBoxItems = () => {
         switch (rarity) {
             case 1: return '普通';
             case 2: return '稀有';
-            case 3: return '史诗';
+            case 3: return '隐藏';
             default: return '未知';
         }
     };
@@ -245,67 +245,79 @@ const ManageBoxItems = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">加载中...</p>
+                    <div className="relative">
+                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto"></div>
+                        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-purple-400 animate-ping"></div>
+                    </div>
+                    <p className="mt-6 text-lg text-gray-600 font-medium">正在加载商品数据...</p>
+                    <p className="mt-2 text-sm text-gray-500">精彩内容马上呈现</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+            <div className="max-w-7xl mx-auto px-6 py-8">
+                {/* 返回按钮 */}
+                <button
+                    onClick={() => navigate('/seller/blindbox/manage')}
+                    className="flex items-center text-gray-600 hover:text-purple-600 mb-6 transition-colors duration-200 group"
+                >
+                    <svg className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span className="font-medium">返回盲盒管理</span>
+                </button>
+
                 {/* Header */}
-                <div className="mb-8">
-                    <button
-                        onClick={() => navigate('/seller/blindbox/manage')}
-                        className="flex items-center text-gray-600 hover:text-gray-800 mb-4"
-                    >
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        返回盲盒管理
-                    </button>
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-800">商品管理</h1>
-                            <p className="text-gray-600 mt-2">
-                                {blindBox ? `管理盲盒"${blindBox.name}"的商品` : '管理盲盒商品'}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => setShowCreateForm(true)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-                        >
-                            添加商品
-                        </button>
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full mb-4">
+                        <span className="text-3xl">🎁</span>
                     </div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">
+                        商品管理
+                    </h1>
+                    <p className="text-base text-gray-600 max-w-2xl mx-auto mb-6">
+                        {blindBox ? `管理盲盒"${blindBox.name}"的商品` : '管理盲盒商品'}
+                    </p>
+                    <button
+                        onClick={() => setShowCreateForm(true)}
+                        className="px-6 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-xl font-bold text-base transition-all duration-200 transform hover:scale-105 shadow-btn"
+                    >
+                        <span className="flex items-center">
+                            <span className="mr-2">✨</span>
+                            添加商品
+                        </span>
+                    </button>
                 </div>
 
                 {/* Blind Box Info */}
                 {blindBox && (
-                    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-6 mb-8">
                         <div className="flex items-center">
                             <img
                                 src={blindBox.cover_image}
                                 alt={blindBox.name}
-                                className="w-20 h-20 object-cover rounded-lg mr-4"
+                                className="w-20 h-20 object-cover rounded-2xl mr-6 border-2 border-white shadow-lg"
                                 onError={(e) => {
                                     e.target.src = 'https://via.placeholder.com/80x80?text=图片';
                                 }}
                             />
-                            <div>
-                                <h2 className="text-xl font-semibold text-gray-800">{blindBox.name}</h2>
-                                <p className="text-gray-600">{blindBox.description}</p>
-                                <div className="flex items-center space-x-4 mt-2">
-                                    <span className="text-sm text-gray-500">价格: ¥{blindBox.price}</span>
-                                    <span className="text-sm text-gray-500">库存: {blindBox.stock}</span>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                        blindBox.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold text-gray-800 mb-2">{blindBox.name}</h2>
+                                <p className="text-gray-600 mb-3 leading-relaxed">{blindBox.description}</p>
+                                <div className="flex items-center space-x-6">
+                                    <span className="text-sm font-semibold text-green-600">💰 价格: ¥{blindBox.price}</span>
+                                    <span className="text-sm font-semibold text-blue-600">📦 库存: {blindBox.stock}</span>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                        blindBox.status === 1 
+                                            ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200' 
+                                            : 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border border-red-200'
                                     }`}>
-                                        {blindBox.status === 1 ? '上架中' : '已下架'}
+                                        {blindBox.status === 1 ? '🚀 上架中' : '⏸️ 已下架'}
                                     </span>
                                 </div>
                             </div>
@@ -314,118 +326,131 @@ const ManageBoxItems = () => {
                 )}
 
                 {/* Search and Filter */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-6 mb-8">
                     <form onSubmit={handleSearch} className="space-y-4">
                         <div className="flex gap-4">
-                            <input
-                                type="text"
-                                placeholder="搜索商品名称..."
-                                value={filterParams.keyword}
-                                onChange={(e) => setFilterParams({...filterParams, keyword: e.target.value})}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            />
+                            <div className="flex-1 relative">
+                                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                                <input
+                                    type="text"
+                                    placeholder="搜索商品名称..."
+                                    value={filterParams.keyword}
+                                    onChange={(e) => setFilterParams({...filterParams, keyword: e.target.value})}
+                                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-base hover:border-gray-300"
+                                />
+                            </div>
                             <select
                                 value={filterParams.rarity}
                                 onChange={(e) => setFilterParams({...filterParams, rarity: e.target.value})}
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:border-gray-300"
                             >
                                 <option value="">全部稀有度</option>
-                                <option value="1">普通</option>
-                                <option value="2">稀有</option>
-                                <option value="3">隐藏</option>
+                                <option value="1">🟢 普通</option>
+                                <option value="2">🔵 稀有</option>
+                                <option value="3">🟣 隐藏</option>
                             </select>
                             <select
                                 value={filterParams.sortBy}
                                 onChange={(e) => setFilterParams({...filterParams, sortBy: e.target.value})}
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:border-gray-300"
                             >
-                                <option value="rarity">稀有度</option>
-                                <option value="name">名称</option>
-                                <option value="probability">概率</option>
+                                <option value="rarity">⭐ 稀有度</option>
+                                <option value="name">📝 名称</option>
+                                <option value="probability">🎲 概率</option>
                             </select>
                             <select
                                 value={filterParams.order}
                                 onChange={(e) => setFilterParams({...filterParams, order: e.target.value})}
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:border-gray-300"
                             >
-                                <option value="asc">升序</option>
-                                <option value="desc">降序</option>
+                                <option value="asc">⬆️ 升序</option>
+                                <option value="desc">⬇️ 降序</option>
                             </select>
                             <button
                                 type="button"
                                 onClick={handleReset}
-                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors"
+                                className="px-6 py-3 border-2 border-gray-300 rounded-xl text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 font-semibold"
                             >
                                 重置
                             </button>
                         </div>
-                        <div className="text-sm text-gray-500">
-                            💡 提示：输入关键词或选择条件后会自动筛选（500ms延迟）
+                        <div className="text-sm text-gray-500 flex items-center">
+                            <span className="mr-2">💡</span>
+                            提示：输入关键词或选择条件后会自动筛选（500ms延迟）
                         </div>
                     </form>
                 </div>
 
                 {/* Box Items Table */}
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        商品信息
+                                    <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                        🎁 商品信息
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        稀有度
+                                    <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                        ⭐ 稀有度
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        概率
+                                    <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                        🎲 概率
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        操作
+                                    <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                        ⚡ 操作
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-gray-100">
                                 {filteredItems.map((item) => (
-                                    <tr key={item.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4">
+                                    <tr key={item.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200">
+                                        <td className="px-8 py-6">
                                             <div className="flex items-center">
                                                 <img
                                                     src={item.image}
                                                     alt={item.name}
-                                                    className="w-16 h-16 object-cover rounded-lg mr-4"
+                                                    className="w-20 h-20 object-cover rounded-2xl mr-6 border-2 border-white shadow-lg"
                                                     onError={(e) => {
-                                                        e.target.src = 'https://via.placeholder.com/64x64?text=图片';
+                                                        e.target.src = 'https://via.placeholder.com/80x80?text=图片';
                                                     }}
                                                 />
                                                 <div>
-                                                    <div className="text-sm font-medium text-gray-900">
+                                                    <div className="text-lg font-bold text-gray-900 mb-1">
                                                         {item.name}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getRarityColor(item.rarity)}`}>
+                                        <td className="px-8 py-6">
+                                            <span className={`px-4 py-2 rounded-full text-sm font-bold ${getRarityColor(item.rarity)}`}>
                                                 {getRarityText(item.rarity)}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
-                                            {(item.probability * 100).toFixed(1)}%
+                                        <td className="px-8 py-6">
+                                            <div className="text-lg font-bold text-purple-600">
+                                                {(item.probability * 100).toFixed(1)}%
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                抽中概率
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm font-medium space-x-2">
-                                            <button
-                                                onClick={() => handleEdit(item)}
-                                                className="text-blue-600 hover:text-blue-900"
-                                            >
-                                                编辑
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                删除
-                                            </button>
+                                        <td className="px-8 py-6">
+                                            <div className="flex flex-col space-y-2">
+                                                <button
+                                                    onClick={() => handleEdit(item)}
+                                                    className="text-blue-600 hover:text-blue-800 font-semibold text-sm flex items-center"
+                                                >
+                                                    <span className="mr-1">✏️</span>
+                                                    编辑
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(item.id)}
+                                                    className="text-red-600 hover:text-red-800 font-semibold text-sm flex items-center"
+                                                >
+                                                    <span className="mr-1">🗑️</span>
+                                                    删除
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -434,15 +459,18 @@ const ManageBoxItems = () => {
                     </div>
 
                     {filteredItems.length === 0 && (
-                        <div className="text-center py-12">
-                            <div className="text-gray-400 text-6xl mb-4">🎁</div>
-                            <h3 className="text-xl font-semibold text-gray-600 mb-2">暂无商品</h3>
-                            <p className="text-gray-500 mb-4">这个盲盒还没有添加任何商品</p>
+                        <div className="text-center py-16">
+                            <div className="text-gray-400 text-8xl mb-6">🎁</div>
+                            <h3 className="text-2xl font-bold text-gray-600 mb-4">暂无商品</h3>
+                            <p className="text-gray-500 mb-8 text-lg">这个盲盒还没有添加任何商品，开始添加您的第一个商品吧！</p>
                             <button
                                 onClick={() => setShowCreateForm(true)}
-                                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+                                className="px-8 py-4 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-2xl font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-btn"
                             >
-                                添加第一个商品
+                                <span className="flex items-center">
+                                    <span className="mr-2">✨</span>
+                                    添加第一个商品
+                                </span>
                             </button>
                         </div>
                     )}
@@ -450,43 +478,66 @@ const ManageBoxItems = () => {
 
                 {/* Create Modal */}
                 {showCreateForm && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                            <h3 className="text-xl font-bold mb-4">添加商品</h3>
-                            <div className="space-y-4">
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-2xl font-bold text-gray-800 flex items-center">
+                                    <span className="mr-3">✨</span>
+                                    添加商品
+                                </h3>
+                                <button
+                                    onClick={() => setShowCreateForm(false)}
+                                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <div className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">商品名称</label>
+                                    <label className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                        <span className="mr-2">🎯</span>
+                                        商品名称
+                                    </label>
                                     <input
                                         type="text"
                                         value={createForm.name}
                                         onChange={(e) => setCreateForm({...createForm, name: e.target.value})}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">商品图片URL</label>
+                                    <label className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                        <span className="mr-2">🖼️</span>
+                                        商品图片URL
+                                    </label>
                                     <input
                                         type="text"
                                         value={createForm.image}
                                         onChange={(e) => setCreateForm({...createForm, image: e.target.value})}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300"
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">稀有度</label>
+                                        <label className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                            <span className="mr-2">⭐</span>
+                                            稀有度
+                                        </label>
                                         <select
                                             value={createForm.rarity}
                                             onChange={(e) => setCreateForm({...createForm, rarity: parseInt(e.target.value)})}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                            className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300"
                                         >
-                                            <option value={1}>普通</option>
-                                            <option value={2}>稀有</option>
-                                            <option value={3}>史诗</option>
+                                            <option value={1}>🟢 普通</option>
+                                            <option value={2}>🔵 稀有</option>
+                                            <option value={3}>🟣 隐藏</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">概率 (0-1)</label>
+                                        <label className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                            <span className="mr-2">🎲</span>
+                                            概率 (0-1)
+                                        </label>
                                         <input
                                             type="number"
                                             value={createForm.probability}
@@ -494,23 +545,26 @@ const ManageBoxItems = () => {
                                             step="0.01"
                                             min="0"
                                             max="1"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                            className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300"
                                         />
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex justify-end space-x-4 mt-6">
+                            <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
                                 <button
                                     onClick={() => setShowCreateForm(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    className="px-8 py-4 border-2 border-gray-300 rounded-2xl text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 font-semibold text-lg"
                                 >
                                     取消
                                 </button>
                                 <button
                                     onClick={handleCreateItem}
-                                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                                    className="px-8 py-4 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-2xl font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-btn"
                                 >
-                                    创建
+                                    <span className="flex items-center">
+                                        <span className="mr-2">✨</span>
+                                        创建
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -519,50 +573,73 @@ const ManageBoxItems = () => {
 
                 {/* Edit Modal */}
                 {editingItem && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                            <h3 className="text-xl font-bold mb-4">编辑商品</h3>
-                            <div className="space-y-4">
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-2xl font-bold text-gray-800 flex items-center">
+                                    <span className="mr-3">✏️</span>
+                                    编辑商品
+                                </h3>
+                                <button
+                                    onClick={() => setEditingItem(null)}
+                                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <div className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="edit-name">商品名称</label>
+                                    <label className="text-lg font-semibold text-gray-800 mb-3 flex items-center" htmlFor="edit-name">
+                                        <span className="mr-2">🎯</span>
+                                        商品名称
+                                    </label>
                                     <input
                                         id="edit-name"
                                         type="text"
                                         value={editForm.name}
                                         onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300"
                                         required
                                         aria-required="true"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="edit-image">商品图片URL</label>
+                                    <label className="text-lg font-semibold text-gray-800 mb-3 flex items-center" htmlFor="edit-image">
+                                        <span className="mr-2">🖼️</span>
+                                        商品图片URL
+                                    </label>
                                     <input
                                         id="edit-image"
                                         type="text"
                                         value={editForm.image}
                                         onChange={(e) => setEditForm({...editForm, image: e.target.value})}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300"
                                         required
                                         aria-required="true"
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="edit-rarity">稀有度</label>
+                                        <label className="text-lg font-semibold text-gray-800 mb-3 flex items-center" htmlFor="edit-rarity">
+                                            <span className="mr-2">⭐</span>
+                                            稀有度
+                                        </label>
                                         <select
                                             id="edit-rarity"
                                             value={editForm.rarity}
                                             onChange={(e) => setEditForm({...editForm, rarity: parseInt(e.target.value)})}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                            className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300"
                                         >
-                                            <option value={1}>普通</option>
-                                            <option value={2}>稀有</option>
-                                            <option value={3}>史诗</option>
+                                            <option value={1}>🟢 普通</option>
+                                            <option value={2}>🔵 稀有</option>
+                                            <option value={3}>🟣 隐藏</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="edit-probability">概率 (0-1)</label>
+                                        <label className="text-lg font-semibold text-gray-800 mb-3 flex items-center" htmlFor="edit-probability">
+                                            <span className="mr-2">🎲</span>
+                                            概率 (0-1)
+                                        </label>
                                         <input
                                             id="edit-probability"
                                             type="number"
@@ -571,24 +648,24 @@ const ManageBoxItems = () => {
                                             step="0.01"
                                             min="0"
                                             max="1"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                            className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-lg hover:border-gray-300"
                                             required
                                             aria-required="true"
                                         />
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex justify-end space-x-4 mt-6">
+                            <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
                                 <button
                                     onClick={() => setEditingItem(null)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    className="px-8 py-4 border-2 border-gray-300 rounded-2xl text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 font-semibold text-lg"
                                     title="取消编辑"
                                 >
                                     取消
                                 </button>
                                 <button
                                     onClick={handleUpdate}
-                                    className={`px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg ${
+                                    className={`px-8 py-4 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-2xl font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-btn ${
                                         !editForm.name || !editForm.image || editForm.probability < 0 || editForm.probability > 1 ? 'opacity-50 cursor-not-allowed' : ''
                                     }`}
                                     disabled={
@@ -596,7 +673,10 @@ const ManageBoxItems = () => {
                                     }
                                     title={!editForm.name ? '请输入商品名称' : !editForm.image ? '请输入图片URL' : (editForm.probability < 0 || editForm.probability > 1) ? '概率需在0-1之间' : '保存'}
                                 >
-                                    保存
+                                    <span className="flex items-center">
+                                        <span className="mr-2">💾</span>
+                                        保存
+                                    </span>
                                 </button>
                             </div>
                         </div>
