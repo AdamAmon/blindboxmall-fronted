@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import Profile from '../../src/pages/user/Profile';
+import Profile from '../../../src/pages/user/Profile';
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 
