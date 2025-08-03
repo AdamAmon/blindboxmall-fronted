@@ -86,7 +86,7 @@ describe('PlayerShowDetail', () => {
     vi.clearAllMocks();
     
     // 设置默认的 API 响应
-    api.get.mockImplementation((url, config) => {
+    api.get.mockImplementation((url) => {
       if (url === '/api/community/show/detail') {
         return Promise.resolve({ 
           data: { 
