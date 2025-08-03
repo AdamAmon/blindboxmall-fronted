@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import OrderList from '../../../src/pages/order/OrderList';
 
@@ -93,16 +93,22 @@ describe('OrderList Component', () => {
   });
 
   const renderWithRouter = (component) => {
-    return render(
-      <BrowserRouter>
-        {component}
-      </BrowserRouter>
-    );
+    let result;
+    act(() => {
+      result = render(
+        <BrowserRouter>
+          {component}
+        </BrowserRouter>
+      );
+    });
+    return result;
   };
 
   describe('组件渲染', () => {
     it('应该正确渲染订单列表页面', async () => {
-      renderWithRouter(<OrderList />);
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       // 等待组件加载完成
       await waitFor(() => {
@@ -110,24 +116,28 @@ describe('OrderList Component', () => {
       });
     });
 
-    it('应该显示加载状态', () => {
+    it('应该显示加载状态', async () => {
       mockApi.get.mockImplementation(() => new Promise(() => {})); // 永不解析的Promise
       
-      renderWithRouter(<OrderList />);
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       expect(screen.getByText('正在加载订单...')).toBeInTheDocument();
     });
 
-    it('应该能够获取用户信息', () => {
-      renderWithRouter(<OrderList />);
+    it('应该能够获取用户信息', async () => {
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
     });
 
-    it('应该能够处理用户信息解析失败', () => {
+    it('应该能够处理用户信息解析失败', async () => {
       localStorageMock.getItem.mockReturnValue('invalid json');
       
-      // 应该抛出错误，因为JSON解析失败
+      // 组件应该抛出错误，因为JSON解析失败
       expect(() => {
         renderWithRouter(<OrderList />);
       }).toThrow('Unexpected token');
@@ -136,7 +146,9 @@ describe('OrderList Component', () => {
 
   describe('API 调用', () => {
     it('组件挂载时应该获取订单列表', async () => {
-      renderWithRouter(<OrderList />);
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       await waitFor(() => {
         expect(mockApi.get).toHaveBeenCalledWith('/api/pay/order/list', { params: { user_id: 1 } });
@@ -146,7 +158,9 @@ describe('OrderList Component', () => {
     it('应该能够处理 API 请求失败', async () => {
       mockApi.get.mockRejectedValue(new Error('网络错误'));
       
-      renderWithRouter(<OrderList />);
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('获取订单失败')).toBeInTheDocument();
@@ -155,24 +169,28 @@ describe('OrderList Component', () => {
   });
 
   describe('用户状态处理', () => {
-    it('应该能够获取用户信息', () => {
-      renderWithRouter(<OrderList />);
+    it('应该能够获取用户信息', async () => {
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
     });
 
-    it('未登录用户应该跳转到登录页', () => {
+    it('未登录用户应该跳转到登录页', async () => {
       localStorageMock.getItem.mockReturnValue(null);
       
-      renderWithRouter(<OrderList />);
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
     });
 
-    it('应该能够处理用户信息解析失败', () => {
+    it('应该能够处理用户信息解析失败', async () => {
       localStorageMock.getItem.mockReturnValue('invalid json');
       
-      // 应该抛出错误，因为JSON解析失败
+      // 组件应该抛出错误，因为JSON解析失败
       expect(() => {
         renderWithRouter(<OrderList />);
       }).toThrow('Unexpected token');
@@ -183,7 +201,9 @@ describe('OrderList Component', () => {
     it('应该能够处理网络错误', async () => {
       mockApi.get.mockRejectedValue(new Error('网络错误'));
       
-      renderWithRouter(<OrderList />);
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('获取订单失败')).toBeInTheDocument();
@@ -193,7 +213,9 @@ describe('OrderList Component', () => {
     it('应该能够处理 API 响应格式错误', async () => {
       mockApi.get.mockResolvedValue({ data: null });
       
-      renderWithRouter(<OrderList />);
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       // 组件应该能够处理错误而不崩溃
       expect(() => {
@@ -204,41 +226,59 @@ describe('OrderList Component', () => {
 
   describe('组件生命周期', () => {
     it('组件挂载时应该获取订单列表', async () => {
-      renderWithRouter(<OrderList />);
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       await waitFor(() => {
         expect(mockApi.get).toHaveBeenCalledWith('/api/pay/order/list', { params: { user_id: 1 } });
       });
     });
 
-    it('组件挂载时应该获取用户信息', () => {
-      renderWithRouter(<OrderList />);
+    it('组件挂载时应该获取用户信息', async () => {
+      await act(async () => {
+        renderWithRouter(<OrderList />);
+      });
       
       expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
     });
   });
 
   describe('基本功能', () => {
-    it('应该能够渲染组件', () => {
-      expect(() => {
-        renderWithRouter(<OrderList />);
-      }).not.toThrow();
+    it('应该能够渲染组件', async () => {
+      await act(async () => {
+        expect(() => {
+          renderWithRouter(<OrderList />);
+        }).not.toThrow();
+      });
     });
 
-    it('应该能够处理组件重新渲染', () => {
-      const { rerender } = renderWithRouter(<OrderList />);
+    it('应该能够处理组件重新渲染', async () => {
+      let rerender;
+      await act(async () => {
+        const result = renderWithRouter(<OrderList />);
+        rerender = result.rerender;
+      });
       
-      expect(() => {
-        rerender(<OrderList />);
-      }).not.toThrow();
+      await act(async () => {
+        expect(() => {
+          rerender(<OrderList />);
+        }).not.toThrow();
+      });
     });
 
-    it('应该能够处理组件卸载', () => {
-      const { unmount } = renderWithRouter(<OrderList />);
+    it('应该能够处理组件卸载', async () => {
+      let unmount;
+      await act(async () => {
+        const result = renderWithRouter(<OrderList />);
+        unmount = result.unmount;
+      });
       
-      expect(() => {
-        unmount();
-      }).not.toThrow();
+      await act(async () => {
+        expect(() => {
+          unmount();
+        }).not.toThrow();
+      });
     });
   });
 

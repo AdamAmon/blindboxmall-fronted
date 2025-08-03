@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -41,11 +41,15 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 const renderWithRouter = (component) => {
-  return render(
-    <BrowserRouter>
-      {component}
-    </BrowserRouter>
-  );
+  let result;
+  act(() => {
+    result = render(
+      <BrowserRouter>
+        {component}
+      </BrowserRouter>
+    );
+  });
+  return result;
 };
 
 const mockUser = {
@@ -102,7 +106,10 @@ describe('OrderDetail Component', () => {
   describe('基本渲染', () => {
     it('应该正确渲染订单详情页面', async () => {
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('订单详情')).toBeInTheDocument();
@@ -112,7 +119,10 @@ describe('OrderDetail Component', () => {
 
     it('应该显示订单状态', async () => {
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('待发货')).toBeInTheDocument();
@@ -124,7 +134,10 @@ describe('OrderDetail Component', () => {
     it('未登录用户应该跳转到登录页', async () => {
       localStorageMock.getItem.mockReturnValue(null);
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
     });
@@ -132,7 +145,10 @@ describe('OrderDetail Component', () => {
     it('应该能够获取用户信息', async () => {
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockUser));
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
     });
@@ -141,7 +157,10 @@ describe('OrderDetail Component', () => {
   describe('API调用', () => {
     it('应该调用API获取订单详情', async () => {
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         expect(mockApi.get).toHaveBeenCalledWith('/api/pay/order/get', {
@@ -153,7 +172,10 @@ describe('OrderDetail Component', () => {
     it('应该能够处理API请求失败', async () => {
       mockApi.get.mockRejectedValue(new Error('网络错误'));
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('获取订单失败')).toBeInTheDocument();
@@ -164,7 +186,10 @@ describe('OrderDetail Component', () => {
   describe('订单状态', () => {
     it('应该正确显示不同订单状态', async () => {
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('待发货')).toBeInTheDocument();
@@ -173,7 +198,10 @@ describe('OrderDetail Component', () => {
 
     it('应该显示订单总金额', async () => {
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('￥299.99')).toBeInTheDocument();
@@ -185,7 +213,10 @@ describe('OrderDetail Component', () => {
     it('应该能够处理订单数据为空', async () => {
       mockApi.get.mockResolvedValue({ data: { data: null } });
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('订单不存在')).toBeInTheDocument();
@@ -197,7 +228,10 @@ describe('OrderDetail Component', () => {
     it('加载时应该显示加载状态', async () => {
       mockApi.get.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       expect(screen.getByText('正在加载订单详情...')).toBeInTheDocument();
     });
@@ -206,7 +240,10 @@ describe('OrderDetail Component', () => {
   describe('导航功能', () => {
     it('应该能够返回订单列表', async () => {
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         const backButton = screen.getByText('返回订单列表');
@@ -219,7 +256,10 @@ describe('OrderDetail Component', () => {
   describe('数据格式化', () => {
     it('应该正确格式化订单号', async () => {
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('#ORDER123')).toBeInTheDocument();
@@ -228,7 +268,10 @@ describe('OrderDetail Component', () => {
 
     it('应该正确格式化日期', async () => {
       const { default: OrderDetail } = await import('../../../src/pages/order/OrderDetail');
-      renderWithRouter(<OrderDetail />);
+      
+      await act(async () => {
+        renderWithRouter(<OrderDetail />);
+      });
       
       await waitFor(() => {
         // 检查日期是否被正确格式化显示

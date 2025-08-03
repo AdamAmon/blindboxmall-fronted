@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import CouponCenter from '../../../src/pages/coupon/CouponCenter';
 
@@ -85,41 +85,52 @@ describe('CouponCenter Component', () => {
   });
 
   const renderWithRouter = (component) => {
-    return render(
-      <BrowserRouter>
-        {component}
-      </BrowserRouter>
-    );
+    let result;
+    act(() => {
+      result = render(
+        <BrowserRouter>
+          {component}
+        </BrowserRouter>
+      );
+    });
+    return result;
   };
 
   describe('组件渲染', () => {
     it('应该正确渲染优惠券中心页面', async () => {
-      renderWithRouter(<CouponCenter />);
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
-      // 等待组件加载完成
+      // 等待组件加载完成，检查页面标题
       await waitFor(() => {
-        expect(screen.getByText('正在加载优惠券...')).toBeInTheDocument();
+        expect(screen.getByText('优惠券中心')).toBeInTheDocument();
       });
     });
 
-    it('应该显示加载状态', () => {
+    it('应该显示加载状态', async () => {
       mockApi.get.mockImplementation(() => new Promise(() => {})); // 永不解析的Promise
       
-      renderWithRouter(<CouponCenter />);
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
+      // 检查加载状态
       expect(screen.getByText('正在加载优惠券...')).toBeInTheDocument();
     });
 
-    it('应该能够获取用户信息', () => {
-      renderWithRouter(<CouponCenter />);
+    it('应该能够获取用户信息', async () => {
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
     });
 
-    it('应该能够处理用户信息解析失败', () => {
+    it('应该能够处理用户信息解析失败', async () => {
       localStorageMock.getItem.mockReturnValue('invalid json');
       
-      // 应该抛出错误，因为JSON解析失败
+      // 组件应该抛出错误，因为JSON解析失败
       expect(() => {
         renderWithRouter(<CouponCenter />);
       }).toThrow('Unexpected token');
@@ -128,7 +139,9 @@ describe('CouponCenter Component', () => {
 
   describe('API 调用', () => {
     it('组件挂载时应该获取优惠券列表', async () => {
-      renderWithRouter(<CouponCenter />);
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       await waitFor(() => {
         expect(mockApi.get).toHaveBeenCalledWith('/api/coupon');
@@ -138,35 +151,41 @@ describe('CouponCenter Component', () => {
     it('应该能够处理 API 请求失败', async () => {
       mockApi.get.mockRejectedValue(new Error('网络错误'));
       
-      renderWithRouter(<CouponCenter />);
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       // 组件应该能够处理错误而不崩溃
-      expect(() => {
-        renderWithRouter(<CouponCenter />);
-      }).not.toThrow();
+      await waitFor(() => {
+        expect(screen.getByText('获取优惠券失败，请稍后重试')).toBeInTheDocument();
+      });
     });
   });
 
   describe('用户状态处理', () => {
-    it('应该能够获取用户信息', () => {
-      renderWithRouter(<CouponCenter />);
+    it('应该能够获取用户信息', async () => {
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
     });
 
-    it('应该能够处理用户信息解析失败', () => {
+    it('应该能够处理用户信息解析失败', async () => {
       localStorageMock.getItem.mockReturnValue('invalid json');
       
-      // 应该抛出错误，因为JSON解析失败
+      // 组件应该抛出错误，因为JSON解析失败
       expect(() => {
         renderWithRouter(<CouponCenter />);
       }).toThrow('Unexpected token');
     });
 
-    it('应该能够处理用户信息为空', () => {
+    it('应该能够处理用户信息为空', async () => {
       localStorageMock.getItem.mockReturnValue(null);
       
-      renderWithRouter(<CouponCenter />);
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       // 不应该抛出错误
       expect(() => {
@@ -177,15 +196,19 @@ describe('CouponCenter Component', () => {
 
   describe('组件生命周期', () => {
     it('组件挂载时应该获取优惠券列表', async () => {
-      renderWithRouter(<CouponCenter />);
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       await waitFor(() => {
         expect(mockApi.get).toHaveBeenCalledWith('/api/coupon');
       });
     });
 
-    it('组件挂载时应该获取用户信息', () => {
-      renderWithRouter(<CouponCenter />);
+    it('组件挂载时应该获取用户信息', async () => {
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
     });
@@ -195,18 +218,22 @@ describe('CouponCenter Component', () => {
     it('应该能够处理网络错误', async () => {
       mockApi.get.mockRejectedValue(new Error('网络错误'));
       
-      renderWithRouter(<CouponCenter />);
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       // 组件应该能够处理错误而不崩溃
-      expect(() => {
-        renderWithRouter(<CouponCenter />);
-      }).not.toThrow();
+      await waitFor(() => {
+        expect(screen.getByText('获取优惠券失败，请稍后重试')).toBeInTheDocument();
+      });
     });
 
     it('应该能够处理 API 响应格式错误', async () => {
       mockApi.get.mockResolvedValue({ data: null });
       
-      renderWithRouter(<CouponCenter />);
+      await act(async () => {
+        renderWithRouter(<CouponCenter />);
+      });
       
       // 组件应该能够处理错误而不崩溃
       expect(() => {
@@ -216,26 +243,40 @@ describe('CouponCenter Component', () => {
   });
 
   describe('基本功能', () => {
-    it('应该能够渲染组件', () => {
-      expect(() => {
-        renderWithRouter(<CouponCenter />);
-      }).not.toThrow();
+    it('应该能够渲染组件', async () => {
+      await act(async () => {
+        expect(() => {
+          renderWithRouter(<CouponCenter />);
+        }).not.toThrow();
+      });
     });
 
-    it('应该能够处理组件重新渲染', () => {
-      const { rerender } = renderWithRouter(<CouponCenter />);
+    it('应该能够处理组件重新渲染', async () => {
+      let rerender;
+      await act(async () => {
+        const result = renderWithRouter(<CouponCenter />);
+        rerender = result.rerender;
+      });
       
-      expect(() => {
-        rerender(<CouponCenter />);
-      }).not.toThrow();
+      await act(async () => {
+        expect(() => {
+          rerender(<CouponCenter />);
+        }).not.toThrow();
+      });
     });
 
-    it('应该能够处理组件卸载', () => {
-      const { unmount } = renderWithRouter(<CouponCenter />);
+    it('应该能够处理组件卸载', async () => {
+      let unmount;
+      await act(async () => {
+        const result = renderWithRouter(<CouponCenter />);
+        unmount = result.unmount;
+      });
       
-      expect(() => {
-        unmount();
-      }).not.toThrow();
+      await act(async () => {
+        expect(() => {
+          unmount();
+        }).not.toThrow();
+      });
     });
   });
 

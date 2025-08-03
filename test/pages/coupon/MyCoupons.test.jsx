@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import MyCoupons from '../../../src/pages/coupon/MyCoupons';
 
@@ -30,6 +30,16 @@ vi.mock('react-router-dom', async () => {
     ...actual,
     useNavigate: () => mockNavigate,
   };
+});
+
+// 模拟 setTimeout 和 clearTimeout
+const originalSetTimeout = global.setTimeout;
+const originalClearTimeout = global.clearTimeout;
+const mockSetTimeout = vi.fn((callback, delay) => {
+  return originalSetTimeout(callback, delay);
+});
+const mockClearTimeout = vi.fn((id) => {
+  return originalClearTimeout(id);
 });
 
 describe('MyCoupons Component', () => {
@@ -74,6 +84,10 @@ describe('MyCoupons Component', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     
+    // 设置定时器模拟
+    global.setTimeout = mockSetTimeout;
+    global.clearTimeout = mockClearTimeout;
+    
     // 动态获取 mock API
     const axiosModule = await import('../../../src/utils/axios');
     mockApi = axiosModule.default;
@@ -87,35 +101,48 @@ describe('MyCoupons Component', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    // 恢复原始定时器
+    global.setTimeout = originalSetTimeout;
+    global.clearTimeout = originalClearTimeout;
   });
 
   const renderWithRouter = (component) => {
-    return render(
-      <BrowserRouter>
-        {component}
-      </BrowserRouter>
-    );
+    let result;
+    act(() => {
+      result = render(
+        <BrowserRouter>
+          {component}
+        </BrowserRouter>
+      );
+    });
+    return result;
   };
 
   describe('组件渲染', () => {
     it('应该正确渲染我的优惠券页面', async () => {
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText(/我的优惠券/)).toBeInTheDocument();
       });
     });
 
-    it('应该显示加载状态', () => {
+    it('应该显示加载状态', async () => {
       mockApi.get.mockImplementation(() => new Promise(() => {})); // 永不解析的Promise
       
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       expect(screen.getByText('正在加载优惠券...')).toBeInTheDocument();
     });
 
-    it('应该能够获取用户信息', () => {
-      renderWithRouter(<MyCoupons />);
+    it('应该能够获取用户信息', async () => {
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
     });
@@ -125,26 +152,32 @@ describe('MyCoupons Component', () => {
     it('未登录用户应该跳转到登录页', async () => {
       localStorageMock.getItem.mockReturnValue(null);
       
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/login');
       }, { timeout: 3000 });
     });
 
-    it('应该能够处理用户信息解析失败', () => {
+    it('应该能够处理用户信息解析失败', async () => {
       localStorageMock.getItem.mockReturnValue('invalid json');
       
       // 组件应该能够处理错误而不崩溃
-      expect(() => {
-        renderWithRouter(<MyCoupons />);
-      }).not.toThrow();
+      await act(async () => {
+        expect(() => {
+          renderWithRouter(<MyCoupons />);
+        }).not.toThrow();
+      });
     });
   });
 
   describe('API 调用', () => {
     it('组件挂载时应该获取优惠券列表', async () => {
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       await waitFor(() => {
         expect(mockApi.get).toHaveBeenCalledWith('/api/user-coupon/list?user_id=1');
@@ -154,7 +187,9 @@ describe('MyCoupons Component', () => {
     it('应该能够处理 API 请求失败', async () => {
       mockApi.get.mockRejectedValue(new Error('网络错误'));
       
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       // 组件应该能够处理错误而不崩溃
       await waitFor(() => {
@@ -165,7 +200,9 @@ describe('MyCoupons Component', () => {
 
   describe('UI 元素', () => {
     it('应该显示全部标签', async () => {
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       await waitFor(() => {
         expect(screen.getByText('全部')).toBeInTheDocument();
@@ -173,7 +210,9 @@ describe('MyCoupons Component', () => {
     });
 
     it('应该显示可使用标签', async () => {
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       await waitFor(() => {
         expect(screen.getAllByText('可使用').length).toBeGreaterThan(0);
@@ -181,7 +220,9 @@ describe('MyCoupons Component', () => {
     });
 
     it('应该显示已使用标签', async () => {
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       await waitFor(() => {
         expect(screen.getAllByText('已使用').length).toBeGreaterThan(0);
@@ -189,7 +230,9 @@ describe('MyCoupons Component', () => {
     });
 
     it('应该显示已过期标签', async () => {
-      renderWithRouter(<MyCoupons />);
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
       
       await waitFor(() => {
         expect(screen.getAllByText('已过期').length).toBeGreaterThan(0);
@@ -198,26 +241,40 @@ describe('MyCoupons Component', () => {
   });
 
   describe('基本功能', () => {
-    it('应该能够渲染组件', () => {
-      expect(() => {
-        renderWithRouter(<MyCoupons />);
-      }).not.toThrow();
+    it('应该能够渲染组件', async () => {
+      await act(async () => {
+        expect(() => {
+          renderWithRouter(<MyCoupons />);
+        }).not.toThrow();
+      });
     });
 
-    it('应该能够处理组件重新渲染', () => {
-      const { rerender } = renderWithRouter(<MyCoupons />);
+    it('应该能够处理组件重新渲染', async () => {
+      let rerender;
+      await act(async () => {
+        const result = renderWithRouter(<MyCoupons />);
+        rerender = result.rerender;
+      });
       
-      expect(() => {
-        rerender(<MyCoupons />);
-      }).not.toThrow();
+      await act(async () => {
+        expect(() => {
+          rerender(<MyCoupons />);
+        }).not.toThrow();
+      });
     });
 
-    it('应该能够处理组件卸载', () => {
-      const { unmount } = renderWithRouter(<MyCoupons />);
+    it('应该能够处理组件卸载', async () => {
+      let unmount;
+      await act(async () => {
+        const result = renderWithRouter(<MyCoupons />);
+        unmount = result.unmount;
+      });
       
-      expect(() => {
-        unmount();
-      }).not.toThrow();
+      await act(async () => {
+        expect(() => {
+          unmount();
+        }).not.toThrow();
+      });
     });
   });
 
