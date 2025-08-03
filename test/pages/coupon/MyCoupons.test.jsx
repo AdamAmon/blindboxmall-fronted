@@ -33,8 +33,8 @@ vi.mock('react-router-dom', async () => {
 });
 
 // 模拟 setTimeout 和 clearTimeout
-const originalSetTimeout = global.setTimeout;
-const originalClearTimeout = global.clearTimeout;
+const originalSetTimeout = setTimeout;
+const originalClearTimeout = clearTimeout;
 const mockSetTimeout = vi.fn((callback, delay) => {
   return originalSetTimeout(callback, delay);
 });
@@ -85,8 +85,8 @@ describe('MyCoupons Component', () => {
     vi.clearAllMocks();
     
     // 设置定时器模拟
-    global.setTimeout = mockSetTimeout;
-    global.clearTimeout = mockClearTimeout;
+    vi.stubGlobal('setTimeout', mockSetTimeout);
+    vi.stubGlobal('clearTimeout', mockClearTimeout);
     
     // 动态获取 mock API
     const axiosModule = await import('../../../src/utils/axios');
@@ -102,8 +102,7 @@ describe('MyCoupons Component', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     // 恢复原始定时器
-    global.setTimeout = originalSetTimeout;
-    global.clearTimeout = originalClearTimeout;
+    vi.unstubAllGlobals();
   });
 
   const renderWithRouter = (component) => {
