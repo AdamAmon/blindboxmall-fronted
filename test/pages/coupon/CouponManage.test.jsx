@@ -197,11 +197,11 @@ describe('CouponManage Component', () => {
       });
     });
 
-    it('应该显示清理过期优惠券按钮', async () => {
+    it('应该显示新建优惠券按钮', async () => {
       renderWithRouter(<CouponManage />);
       
       await waitFor(() => {
-        expect(screen.getByText('清理过期优惠券')).toBeInTheDocument();
+        expect(screen.getByText('新建优惠券')).toBeInTheDocument();
       });
     });
 

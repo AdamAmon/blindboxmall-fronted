@@ -73,6 +73,15 @@ describe('MyCoupons Component', () => {
       created_at: '2024-01-01T10:00:00Z',
       expired_at: '2024-01-01T23:59:59Z',
     },
+    {
+      id: 4,
+      type: 2,
+      amount: 0.9,
+      threshold: 200,
+      status: 0,
+      created_at: '2024-01-01T10:00:00Z',
+      expired_at: '2024-12-31T23:59:59Z',
+    },
   ];
 
   const mockUser = {
@@ -299,12 +308,15 @@ describe('MyCoupons Component', () => {
         if (coupon.type === 1) {
           return `满${coupon.threshold}减${coupon.amount}`;
         } else {
-          return `${(coupon.amount * 10).toFixed(1)}折券`;
+          // 折扣券：amount 是折扣比例，如 0.8 表示 8 折
+          return `${(coupon.amount * 10).toFixed(0)}折券`;
         }
       };
 
       expect(getCouponTypeText({ type: 1, threshold: 100, amount: 10 })).toBe('满100减10');
-      expect(getCouponTypeText({ type: 2, amount: 0.8 })).toBe('8.0折券');
+      expect(getCouponTypeText({ type: 2, amount: 0.8 })).toBe('8折券');
+      expect(getCouponTypeText({ type: 2, amount: 0.9 })).toBe('9折券');
+      expect(getCouponTypeText({ type: 2, amount: 0.75 })).toBe('8折券');
     });
 
     it('应该能够格式化优惠券状态', () => {
@@ -403,6 +415,30 @@ describe('MyCoupons Component', () => {
       expect(stats.unused).toBe(2);
       expect(stats.used).toBe(1);
       expect(stats.expired).toBe(1);
+    });
+
+    it('应该能够正确显示折扣券信息', async () => {
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
+      
+      await waitFor(() => {
+        // 验证折扣券的显示
+        expect(screen.getByText('8折券')).toBeInTheDocument();
+        expect(screen.getByText('9折券')).toBeInTheDocument();
+      });
+    });
+
+    it('应该能够正确显示满减券信息', async () => {
+      await act(async () => {
+        renderWithRouter(<MyCoupons />);
+      });
+      
+      await waitFor(() => {
+        // 验证满减券的显示
+        expect(screen.getByText('满100减10')).toBeInTheDocument();
+        expect(screen.getByText('满50减5')).toBeInTheDocument();
+      });
     });
   });
 }); 
