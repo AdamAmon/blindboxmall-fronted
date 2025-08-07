@@ -3,9 +3,20 @@ import axios from 'axios';
 // 检查是否在浏览器环境中
 const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
 
+// 根据当前URL判断环境
+const getBaseURL = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === '192.168.184.1' || hostname === 'your-production-domain.com') {
+      return 'http://192.168.184.1:7001';
+    }
+  }
+  return 'http://localhost:7001';
+};
+
 // 创建axios实例
 const api = axios.create({
-  baseURL: 'http://localhost:7001',
+  baseURL: getBaseURL(),
   timeout: 10000,
 });
 
