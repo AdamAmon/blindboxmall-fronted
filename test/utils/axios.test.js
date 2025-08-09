@@ -1,151 +1,121 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// 模拟 axios
-const mockAxiosCreate = vi.fn();
+// 在本测试文件内重写对 axios 的 mock，以捕获 create 参数与拦截器
+let capturedConfig;
+let capturedRequestHandler;
+let capturedResponseSuccess;
+let capturedResponseFailure;
+
+const mockApiInstance = {
+  interceptors: {
+    request: {
+      use: (handler) => {
+        capturedRequestHandler = handler;
+      },
+    },
+    response: {
+      use: (onSuccess, onError) => {
+        capturedResponseSuccess = onSuccess;
+        capturedResponseFailure = onError;
+      },
+    },
+  },
+};
+
 const mockAxios = {
-  create: mockAxiosCreate,
+  create: vi.fn((config) => {
+    capturedConfig = config;
+    return mockApiInstance;
+  }),
 };
 
 vi.mock('axios', () => ({
   default: mockAxios,
 }));
 
-// 模拟 localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  removeItem: vi.fn(),
-};
-
-// 模拟 window.location
-const locationMock = {
-  href: '',
-};
-
-describe('Axios API Instance', () => {
+describe('utils/axios 实际模块集成测试', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // 设置 localStorage mock
+    capturedConfig = undefined;
+    capturedRequestHandler = undefined;
+    capturedResponseSuccess = undefined;
+    capturedResponseFailure = undefined;
+
+    // 准备 window.localStorage 与 location
     Object.defineProperty(window, 'localStorage', {
-      value: localStorageMock,
-      writable: true,
-    });
-    
-    // 设置 location mock
-    Object.defineProperty(window, 'location', {
-      value: locationMock,
+      value: {
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+      },
       writable: true,
     });
 
-    // 创建模拟的 axios 实例
-    const mockApiInstance = {
-      interceptors: {
-        request: {
-          use: vi.fn(),
-        },
-        response: {
-          use: vi.fn(),
-        },
-      },
-    };
-    
-    mockAxiosCreate.mockReturnValue(mockApiInstance);
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true,
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('应该导出axios实例', async () => {
-    const apiModule = await import('../../src/utils/axios');
-    expect(apiModule.default).toBeDefined();
-    expect(typeof apiModule.default).toBe('object');
-  });
-
-  it('应该导出默认实例', async () => {
-    const { default: api } = await import('../../src/utils/axios');
+  it('应当以默认 baseURL 创建实例，并注册拦截器', async () => {
+    await vi.resetModules();
+    const { default: api } = await vi.importActual('../../src/utils/axios');
     expect(api).toBeDefined();
+
+    expect(mockAxios.create).toHaveBeenCalledTimes(1);
+    expect(capturedConfig).toBeDefined();
+    expect(capturedConfig.baseURL).toBe('http://localhost:7001');
+    expect(capturedConfig.timeout).toBe(10000);
+
+    // 拦截器已注册
+    expect(typeof capturedRequestHandler).toBe('function');
+    expect(typeof capturedResponseSuccess).toBe('function');
+    expect(typeof capturedResponseFailure).toBe('function');
   });
 
-  it('应该在浏览器环境中正确检测localStorage', () => {
-    expect(typeof window).toBe('object');
-    expect(typeof localStorage).toBe('object');
+  it('请求拦截器应在存在 token 时添加 Authorization 头', async () => {
+    await vi.resetModules();
+    await vi.importActual('../../src/utils/axios');
+
+    window.localStorage.getItem.mockReturnValue('test-token');
+    const cfg = { headers: {} };
+    const nextCfg = await capturedRequestHandler(cfg);
+    expect(nextCfg.headers.Authorization).toBe('Bearer test-token');
   });
 
-  it('应该能够访问localStorage的getItem方法', () => {
-    localStorageMock.getItem.mockReturnValue('test-token');
-    const token = localStorage.getItem('token');
-    expect(token).toBe('test-token');
-    expect(localStorageMock.getItem).toHaveBeenCalledWith('token');
+  it('请求拦截器在无 token 时不修改头', async () => {
+    await vi.resetModules();
+    await vi.importActual('../../src/utils/axios');
+
+    window.localStorage.getItem.mockReturnValue(null);
+    const cfg = { headers: {} };
+    const nextCfg = await capturedRequestHandler(cfg);
+    expect(nextCfg.headers.Authorization).toBeUndefined();
   });
 
-  it('应该能够访问localStorage的removeItem方法', () => {
-    localStorage.removeItem('token');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('token');
+  it('响应成功拦截器应透传响应', async () => {
+    await vi.resetModules();
+    await vi.importActual('../../src/utils/axios');
+
+    const resp = { data: { ok: true } };
+    const nextResp = await capturedResponseSuccess(resp);
+    expect(nextResp).toBe(resp);
   });
 
-  it('应该能够设置window.location.href', () => {
-    window.location.href = '/login';
-    expect(locationMock.href).toBe('/login');
-  });
+  it('响应错误 401 时应清除本地并跳转登录', async () => {
+    await vi.resetModules();
+    await vi.importActual('../../src/utils/axios');
 
-  it('应该能够检测浏览器环境', () => {
-    const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
-    expect(isBrowser).toBe(true);
-  });
+    const error = { response: { status: 401 } };
+    await expect(capturedResponseFailure(error)).rejects.toBe(error);
 
-  it('应该能够处理环境检测逻辑', () => {
-    // 测试浏览器环境检测
-    const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
-    expect(isBrowser).toBe(true);
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('token');
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('user');
+    expect(window.location.href).toBe('/login');
   });
-
-  it('应该能够处理localStorage操作', () => {
-    // 测试 getItem
-    localStorageMock.getItem.mockReturnValue('test-value');
-    const value = localStorage.getItem('test-key');
-    expect(value).toBe('test-value');
-    expect(localStorageMock.getItem).toHaveBeenCalledWith('test-key');
-    
-    // 测试 removeItem
-    localStorage.removeItem('test-key');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('test-key');
-  });
-
-  it('应该能够处理location操作', () => {
-    // 测试设置 href
-    window.location.href = '/test-page';
-    expect(locationMock.href).toBe('/test-page');
-    
-    // 测试重置 href
-    window.location.href = '/login';
-    expect(locationMock.href).toBe('/login');
-  });
-
-  it('应该能够处理axios实例的基本功能', async () => {
-    const api = await import('../../src/utils/axios');
-    expect(api.default).toBeDefined();
-    expect(typeof api.default).toBe('object');
-  });
-
-  it('应该能够处理浏览器环境检测', () => {
-    const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
-    expect(isBrowser).toBe(true);
-  });
-
-  it('应该能够处理localStorage的基本操作', () => {
-    // 测试 getItem
-    localStorageMock.getItem.mockReturnValue('test-value');
-    const value = localStorage.getItem('test-key');
-    expect(value).toBe('test-value');
-    
-    // 测试 removeItem
-    localStorage.removeItem('test-key');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('test-key');
-  });
-
-  it('应该能够处理window.location的基本操作', () => {
-    window.location.href = '/test-page';
-    expect(locationMock.href).toBe('/test-page');
-  });
-}); 
+});
